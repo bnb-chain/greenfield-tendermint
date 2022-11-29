@@ -23,7 +23,7 @@ func (evpool *Pool) verify(evidence types.Evidence) error {
 		evidenceParams = state.ConsensusParams.Evidence
 		ageNumBlocks   = height - evidence.Height()
 	)
-
+	fmt.Printf("evidence %v, height: %d \n", evidence, evidence.Height())
 	// verify the time of the evidence
 	blockMeta := evpool.blockStore.LoadBlockMeta(evidence.Height())
 	if blockMeta == nil {

@@ -63,6 +63,8 @@ func resetAllCmd(cmd *cobra.Command, args []string) (err error) {
 		config.DBDir(),
 		config.P2P.AddrBookFile(),
 		config.PrivValidatorKeyFile(),
+		config.PrivValidatorBlsKeyFile(),
+		config.PrivValidatorRelayerFile(),
 		config.PrivValidatorStateFile(),
 		logger,
 	)
@@ -76,12 +78,12 @@ func resetPrivValidator(cmd *cobra.Command, args []string) (err error) {
 		return err
 	}
 
-	resetFilePV(config.PrivValidatorKeyFile(), config.PrivValidatorStateFile(), logger)
+	resetFilePV(config.PrivValidatorKeyFile(), config.PrivValidatorBlsKeyFile(), config.PrivValidatorStateFile(), config.PrivValidatorRelayer, logger)
 	return nil
 }
 
 // resetAll removes address book files plus all data, and resets the privValdiator data.
-func resetAll(dbDir, addrBookFile, privValKeyFile, privValStateFile string, logger log.Logger) error {
+func resetAll(dbDir, addrBookFile, privValKeyFile, privValBlsKeyFile, privValRelayerFile, privValStateFile string, logger log.Logger) error {
 	if keepAddrBook {
 		logger.Info("The address book remains intact")
 	} else {
@@ -99,7 +101,7 @@ func resetAll(dbDir, addrBookFile, privValKeyFile, privValStateFile string, logg
 	}
 
 	// recreate the dbDir since the privVal state needs to live there
-	resetFilePV(privValKeyFile, privValStateFile, logger)
+	resetFilePV(privValKeyFile, privValBlsKeyFile, privValRelayerFile, privValStateFile, logger)
 	return nil
 }
 
@@ -157,17 +159,19 @@ func resetState(dbDir string, logger log.Logger) error {
 	return nil
 }
 
-func resetFilePV(privValKeyFile, privValStateFile string, logger log.Logger) {
+func resetFilePV(privValKeyFile, privValBlsKeyFile, privValRelayerFile, privValStateFile string, logger log.Logger) {
 	if _, err := os.Stat(privValKeyFile); err == nil {
-		pv := privval.LoadFilePVEmptyState(privValKeyFile, privValStateFile)
+		pv := privval.LoadFilePVEmptyState(privValKeyFile, privValBlsKeyFile, privValStateFile, privValRelayerFile)
 		pv.Reset()
 		logger.Info(
 			"Reset private validator file to genesis state",
 			"keyFile", privValKeyFile,
+			"blsKeyFile", privValBlsKeyFile,
+			"relayerFile", privValRelayerFile,
 			"stateFile", privValStateFile,
 		)
 	} else {
-		pv := privval.GenFilePV(privValKeyFile, privValStateFile)
+		pv := privval.GenFilePV(privValKeyFile, privValBlsKeyFile, privValStateFile, privValRelayerFile)
 		pv.Save()
 		logger.Info(
 			"Generated private validator file",

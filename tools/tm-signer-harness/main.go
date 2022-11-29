@@ -111,6 +111,8 @@ func runTestHarness(acceptRetries int, bindAddr, tmhome string) {
 	cfg := internal.TestHarnessConfig{
 		BindAddr:         bindAddr,
 		KeyFile:          filepath.Join(tmhome, "config", "priv_validator_key.json"),
+		BlsKeyFile:       filepath.Join(tmhome, "config", "priv_validator_bls_key.json"),
+		RelayerFile:      filepath.Join(tmhome, "config", "priv_validator_relayer.json"),
 		StateFile:        filepath.Join(tmhome, "data", "priv_validator_state.json"),
 		GenesisFile:      filepath.Join(tmhome, "config", "genesis.json"),
 		AcceptDeadline:   time.Duration(defaultAcceptDeadline) * time.Second,
@@ -132,8 +134,10 @@ func runTestHarness(acceptRetries int, bindAddr, tmhome string) {
 
 func extractKey(tmhome, outputPath string) {
 	keyFile := filepath.Join(internal.ExpandPath(tmhome), "config", "priv_validator_key.json")
+	blsKeyFile := filepath.Join(internal.ExpandPath(tmhome), "config", "priv_validator_bls_key.json")
 	stateFile := filepath.Join(internal.ExpandPath(tmhome), "data", "priv_validator_state.json")
-	fpv := privval.LoadFilePV(keyFile, stateFile)
+	relayerFile := filepath.Join(internal.ExpandPath(tmhome), "data", "priv_validator_relayer.json")
+	fpv := privval.LoadFilePV(keyFile, blsKeyFile, stateFile, relayerFile)
 	pkb := []byte(fpv.Key.PrivKey.(ed25519.PrivKey))
 	if err := os.WriteFile(internal.ExpandPath(outputPath), pkb[:32], 0o600); err != nil {
 		logger.Info("Failed to write private key", "output", outputPath, "err", err)

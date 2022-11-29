@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/tendermint/tendermint/crypto/bls12381"
 	dbm "github.com/tendermint/tm-db"
 
 	"github.com/tendermint/tendermint/abci/example/code"
@@ -129,9 +130,11 @@ func (app *PersistentKVStoreApplication) BeginBlock(req types.RequestBeginBlock)
 		if ev.Type == types.EvidenceType_DUPLICATE_VOTE {
 			addr := string(ev.Validator.Address)
 			if pubKey, ok := app.valAddrToPubKeyMap[addr]; ok {
+				blsPubkeyP, _ := cryptoenc.BlsPubKeyToProto(blsPubkey)
 				app.updateValidator(types.ValidatorUpdate{
-					PubKey: pubKey,
-					Power:  ev.Validator.Power - 1,
+					PubKey:    pubKey,
+					BlsPubKey: &blsPubkeyP,
+					Power:     ev.Validator.Power - 1,
 				})
 				app.logger.Info("Decreased val power by 1 because of the equivocation",
 					"val", addr)
@@ -207,6 +210,8 @@ func isValidatorTx(tx []byte) bool {
 	return strings.HasPrefix(string(tx), ValidatorSetChangePrefix)
 }
 
+var blsPubkey = bls12381.GenPrivKey().PubKey()
+
 // format is "val:pubkey!power"
 // pubkey is a base64-encoded 32-byte ed25519 key
 func (app *PersistentKVStoreApplication) execValidatorTx(tx []byte) types.ResponseDeliverTx {
@@ -238,7 +243,7 @@ func (app *PersistentKVStoreApplication) execValidatorTx(tx []byte) types.Respon
 	}
 
 	// update
-	return app.updateValidator(types.UpdateValidator(pubkey, power, ""))
+	return app.updateValidator(types.UpdateValidator(pubkey, power, "", blsPubkey.Bytes()))
 }
 
 // add, update, or remove a validator

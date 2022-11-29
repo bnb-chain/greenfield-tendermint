@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/tendermint/tendermint/crypto/bls12381"
 	dbm "github.com/tendermint/tm-db"
 
 	abci "github.com/tendermint/tendermint/abci/types"
@@ -100,13 +101,18 @@ func makeState(nVals, height int) (sm.State, dbm.DB, map[string]types.PrivValida
 		secret := []byte(fmt.Sprintf("test%d", i))
 		pk := ed25519.GenPrivKeyFromSecret(secret)
 		valAddr := pk.PubKey().Address()
+		relayer := ed25519.GenPrivKey().PubKey().Address().String()
+
+		blsPk := bls12381.GenPrivKey()
 		vals[i] = types.GenesisValidator{
-			Address: valAddr,
-			PubKey:  pk.PubKey(),
-			Power:   1000,
-			Name:    fmt.Sprintf("test%d", i),
+			Address:   valAddr,
+			PubKey:    pk.PubKey(),
+			BlsPubKey: blsPk.PubKey(),
+			Relayer:   relayer,
+			Power:     1000,
+			Name:      fmt.Sprintf("test%d", i),
 		}
-		privVals[valAddr.String()] = types.NewMockPVWithParams(pk, false, false)
+		privVals[valAddr.String()] = types.NewMockPVWithParams(pk, blsPk, false, false)
 	}
 	s, _ := sm.MakeGenesisState(&types.GenesisDoc{
 		ChainID:    chainID,
@@ -147,7 +153,8 @@ func makeBlock(state sm.State, height int64) *types.Block {
 func genValSet(size int) *types.ValidatorSet {
 	vals := make([]*types.Validator, size)
 	for i := 0; i < size; i++ {
-		vals[i] = types.NewValidator(ed25519.GenPrivKey().PubKey(), 10)
+		relayer := ed25519.GenPrivKey().PubKey().Address().String()
+		vals[i] = types.NewValidator(ed25519.GenPrivKey().PubKey(), bls12381.GenPrivKey().PubKey(), 10, relayer)
 	}
 	return types.NewValidatorSet(vals)
 }
@@ -167,8 +174,8 @@ func makeHeaderPartsResponsesValPubKeyChange(
 	if !bytes.Equal(pubkey.Bytes(), val.PubKey.Bytes()) {
 		abciResponses.EndBlock = &abci.ResponseEndBlock{
 			ValidatorUpdates: []abci.ValidatorUpdate{
-				types.TM2PB.NewValidatorUpdate(val.PubKey, 0),
-				types.TM2PB.NewValidatorUpdate(pubkey, 10),
+				types.TM2PB.NewValidatorUpdate(val.PubKey, val.BlsPubKey, 0),
+				types.TM2PB.NewValidatorUpdate(pubkey, val.BlsPubKey, 10),
 			},
 		}
 	}
@@ -192,7 +199,7 @@ func makeHeaderPartsResponsesValPowerChange(
 	if val.VotingPower != power {
 		abciResponses.EndBlock = &abci.ResponseEndBlock{
 			ValidatorUpdates: []abci.ValidatorUpdate{
-				types.TM2PB.NewValidatorUpdate(val.PubKey, power),
+				types.TM2PB.NewValidatorUpdate(val.PubKey, val.BlsPubKey, power),
 			},
 		}
 	}
@@ -224,6 +231,7 @@ func randomGenesisDoc() *types.GenesisDoc {
 				PubKey:  pubkey,
 				Power:   10,
 				Name:    "myval",
+				Relayer: "realyer",
 			},
 		},
 		ConsensusParams: types.DefaultConsensusParams(),

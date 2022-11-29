@@ -67,8 +67,10 @@ type TestHarnessConfig struct {
 	BindAddr string
 
 	KeyFile     string
+	BlsKeyFile  string
 	StateFile   string
 	GenesisFile string
+	RelayerFile string
 
 	AcceptDeadline time.Duration
 	ConnDeadline   time.Duration
@@ -90,11 +92,12 @@ type timeoutError interface {
 // harness.
 func NewTestHarness(logger log.Logger, cfg TestHarnessConfig) (*TestHarness, error) {
 	keyFile := ExpandPath(cfg.KeyFile)
+	blsKeyFile := ExpandPath(cfg.BlsKeyFile)
 	stateFile := ExpandPath(cfg.StateFile)
 	logger.Info("Loading private validator configuration", "keyFile", keyFile, "stateFile", stateFile)
 	// NOTE: LoadFilePV ultimately calls os.Exit on failure. No error will be
 	// returned if this call fails.
-	fpv := privval.LoadFilePV(keyFile, stateFile)
+	fpv := privval.LoadFilePV(keyFile, blsKeyFile, stateFile, cfg.RelayerFile)
 
 	genesisFile := ExpandPath(cfg.GenesisFile)
 	logger.Info("Loading chain ID from genesis file", "genesisFile", genesisFile)

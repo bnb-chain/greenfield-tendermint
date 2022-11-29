@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/tendermint/tendermint/crypto"
+	"github.com/tendermint/tendermint/crypto/bls12381"
 	"github.com/tendermint/tendermint/crypto/ed25519"
 	"github.com/tendermint/tendermint/crypto/secp256k1"
 	"github.com/tendermint/tendermint/libs/json"
@@ -12,6 +13,7 @@ import (
 
 func init() {
 	json.RegisterType((*pc.PublicKey)(nil), "tendermint.crypto.PublicKey")
+	json.RegisterType((*pc.BlsPublicKey)(nil), "tendermint.crypto.BlsPublicKey")
 	json.RegisterType((*pc.PublicKey_Ed25519)(nil), "tendermint.crypto.PublicKey_Ed25519")
 	json.RegisterType((*pc.PublicKey_Secp256K1)(nil), "tendermint.crypto.PublicKey_Secp256K1")
 }
@@ -60,4 +62,25 @@ func PubKeyFromProto(k pc.PublicKey) (crypto.PubKey, error) {
 	default:
 		return nil, fmt.Errorf("fromproto: key type %v is not supported", k)
 	}
+}
+
+// BlsPubKeyToProto takes crypto.PubKey and transforms it to a protobuf BlsPublicKey
+func BlsPubKeyToProto(k crypto.PubKey) (pc.BlsPublicKey, error) {
+	var kp pc.BlsPublicKey
+	switch k := k.(type) {
+	case bls12381.PubKey:
+		kp = pc.BlsPublicKey{
+			Bls12381: k,
+		}
+	default:
+		return kp, fmt.Errorf("toproto: key type %v is not supported", k)
+	}
+	return kp, nil
+}
+
+// BlsPubKeyFromProto takes a protobuf BlsPublicKey and transforms it to a crypto.Pubkey
+func BlsPubKeyFromProto(k pc.BlsPublicKey) (crypto.PubKey, error) {
+	pk := make(bls12381.PubKey, bls12381.PubKeySize)
+	copy(pk, k.Bls12381)
+	return pk, nil
 }

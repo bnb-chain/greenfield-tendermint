@@ -452,8 +452,12 @@ func newStateWithConfigAndBlockStore(
 func loadPrivValidator(config *cfg.Config) *privval.FilePV {
 	privValidatorKeyFile := config.PrivValidatorKeyFile()
 	ensureDir(filepath.Dir(privValidatorKeyFile), 0o700)
+	privValidatorBlsKeyFile := config.PrivValidatorBlsKeyFile()
+	ensureDir(filepath.Dir(privValidatorBlsKeyFile), 0o700)
+	privValidatorRelayerFile := config.PrivValidatorRelayerFile()
+	ensureDir(filepath.Dir(privValidatorRelayerFile), 0o700)
 	privValidatorStateFile := config.PrivValidatorStateFile()
-	privValidator := privval.LoadOrGenFilePV(privValidatorKeyFile, privValidatorStateFile)
+	privValidator := privval.LoadOrGenFilePV(privValidatorKeyFile, privValidatorBlsKeyFile, privValidatorStateFile, privValidatorRelayerFile)
 	privValidator.Reset()
 	return privValidator
 }
@@ -780,12 +784,16 @@ func randConsensusNetWithPeers(
 			if err != nil {
 				panic(err)
 			}
+			tempBlsKeyFile, err := os.CreateTemp("", "priv_validator_bls_key_")
+			if err != nil {
+				panic(err)
+			}
 			tempStateFile, err := os.CreateTemp("", "priv_validator_state_")
 			if err != nil {
 				panic(err)
 			}
 
-			privVal = privval.GenFilePV(tempKeyFile.Name(), tempStateFile.Name())
+			privVal = privval.GenFilePV(tempKeyFile.Name(), tempBlsKeyFile.Name(), tempStateFile.Name(), "")
 		}
 
 		app := appFunc(path.Join(config.DBDir(), fmt.Sprintf("%s_%d", testName, i)))
@@ -826,8 +834,10 @@ func randGenesisDoc(numValidators int, randPower bool, minPower int64) (*types.G
 	for i := 0; i < numValidators; i++ {
 		val, privVal := types.RandValidator(randPower, minPower)
 		validators[i] = types.GenesisValidator{
-			PubKey: val.PubKey,
-			Power:  val.VotingPower,
+			PubKey:    val.PubKey,
+			BlsPubKey: val.BlsPubKey,
+			Power:     val.VotingPower,
+			Relayer:   val.Relayer,
 		}
 		privValidators[i] = privVal
 	}

@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"net"
 	"net/http"
+	_ "net/http/pprof" //nolint: gosec // securely exposed on separate, optional port
 	"strings"
 	"time"
 
@@ -52,8 +53,6 @@ import (
 	"github.com/tendermint/tendermint/types"
 	tmtime "github.com/tendermint/tendermint/types/time"
 	"github.com/tendermint/tendermint/version"
-
-	_ "net/http/pprof" //nolint: gosec // securely exposed on separate, optional port
 
 	_ "github.com/lib/pq" // provide the psql db driver
 )
@@ -104,7 +103,8 @@ func DefaultNewNode(config *cfg.Config, logger log.Logger) (*Node, error) {
 	}
 
 	return NewNode(config,
-		privval.LoadOrGenFilePV(config.PrivValidatorKeyFile(), config.PrivValidatorStateFile()),
+		privval.LoadOrGenFilePV(config.PrivValidatorKeyFile(), config.PrivValidatorBlsKeyFile(),
+			config.PrivValidatorStateFile(), config.PrivValidatorRelayerFile()),
 		nodeKey,
 		proxy.DefaultClientCreator(config.ProxyApp, config.ABCI, config.DBDir()),
 		DefaultGenesisDocProviderFunc(config),

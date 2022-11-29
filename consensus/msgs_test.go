@@ -60,7 +60,7 @@ func TestMsgToProto(t *testing.T) {
 	pv := types.NewMockPV()
 	pk, err := pv.GetPubKey()
 	require.NoError(t, err)
-	val := types.NewValidator(pk, 100)
+	val := types.NewValidator(pk, pv.BlsPrivKey.PubKey(), 100, pv.Relayer)
 
 	vote, err := types.MakeVote(
 		1, types.BlockID{}, &types.ValidatorSet{Proposer: val, Validators: []*types.Validator{val}},

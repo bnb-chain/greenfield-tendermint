@@ -29,6 +29,22 @@ const (
 	}
 }`
 
+	blsKeyFileContents = `{
+    "address": "71E60D36A7060F302A9DC71602375BFEBD2939F4",
+    "pub_key": {
+      "type": "tendermint/PubKeyBls12381",
+      "value": "jX+p12DtnSWMjyItjOjoz4GVglMdvBd1L16rd3PFQmqjh28ey/oNw28i1u645vdr"
+    },
+    "priv_key": {
+      "type": "tendermint/PrivKeyBls12381",
+      "value": "Qm0YPZWj+bUlzhsn7smTepKOXC3IHFo94LpsMnP3CjI="
+    }
+}`
+
+	relayerFileContents = `{
+    "address": "71E60D36A7060F302A9DC71602375BFEBD2939F4"
+}`
+
 	stateFileContents = `{
 	"height": "0",
 	"round": 0,
@@ -63,7 +79,8 @@ const (
 			"value": "ZCsuTjaczEyon70nmKxwvwu+jqrbq5OH3yQjcK0SFxc="
 		},
 		"power": "10",
-		"name": ""
+		"name": "",
+		"relayer": "D08FCA3BA74CF17CBFC15E64F9505302BB0E2748"
 		}
 	],
 	"app_hash": ""
@@ -86,7 +103,7 @@ func TestRemoteSignerTestHarnessSuccessfulRun(t *testing.T) {
 	harnessTest(
 		t,
 		func(th *TestHarness) *privval.SignerServer {
-			return newMockSignerServer(t, th, th.fpv.Key.PrivKey, false, false)
+			return newMockSignerServer(t, th, th.fpv.Key.PrivKey, th.fpv.BlsKey.PrivKey, false, false)
 		},
 		NoError,
 	)
@@ -96,7 +113,7 @@ func TestRemoteSignerPublicKeyCheckFailed(t *testing.T) {
 	harnessTest(
 		t,
 		func(th *TestHarness) *privval.SignerServer {
-			return newMockSignerServer(t, th, ed25519.GenPrivKey(), false, false)
+			return newMockSignerServer(t, th, ed25519.GenPrivKey(), th.fpv.BlsKey.PrivKey, false, false)
 		},
 		ErrTestPublicKeyFailed,
 	)
@@ -106,7 +123,7 @@ func TestRemoteSignerProposalSigningFailed(t *testing.T) {
 	harnessTest(
 		t,
 		func(th *TestHarness) *privval.SignerServer {
-			return newMockSignerServer(t, th, th.fpv.Key.PrivKey, true, false)
+			return newMockSignerServer(t, th, th.fpv.Key.PrivKey, th.fpv.BlsKey.PrivKey, true, false)
 		},
 		ErrTestSignProposalFailed,
 	)
@@ -116,7 +133,7 @@ func TestRemoteSignerVoteSigningFailed(t *testing.T) {
 	harnessTest(
 		t,
 		func(th *TestHarness) *privval.SignerServer {
-			return newMockSignerServer(t, th, th.fpv.Key.PrivKey, false, true)
+			return newMockSignerServer(t, th, th.fpv.Key.PrivKey, th.fpv.BlsKey.PrivKey, false, true)
 		},
 		ErrTestSignVoteFailed,
 	)
@@ -126,10 +143,11 @@ func newMockSignerServer(
 	t *testing.T,
 	th *TestHarness,
 	privKey crypto.PrivKey,
+	blsPrivKey crypto.PrivKey,
 	breakProposalSigning bool,
 	breakVoteSigning bool,
 ) *privval.SignerServer {
-	mockPV := types.NewMockPVWithParams(privKey, breakProposalSigning, breakVoteSigning)
+	mockPV := types.NewMockPVWithParams(privKey, blsPrivKey, breakProposalSigning, breakVoteSigning)
 
 	dialerEndpoint := privval.NewSignerDialerEndpoint(
 		th.logger,
@@ -169,6 +187,8 @@ func makeConfig(t *testing.T, acceptDeadline, acceptRetries int) TestHarnessConf
 	return TestHarnessConfig{
 		BindAddr:         privval.GetFreeLocalhostAddrPort(),
 		KeyFile:          makeTempFile("tm-testharness-keyfile", keyFileContents),
+		BlsKeyFile:       makeTempFile("tm-testharness-bls-keyfile", blsKeyFileContents),
+		RelayerFile:      makeTempFile("tm-testharness-relayer-file", relayerFileContents),
 		StateFile:        makeTempFile("tm-testharness-statefile", stateFileContents),
 		GenesisFile:      makeTempFile("tm-testharness-genesisfile", genesisFileContents),
 		AcceptDeadline:   time.Duration(acceptDeadline) * time.Millisecond,
@@ -181,6 +201,8 @@ func makeConfig(t *testing.T, acceptDeadline, acceptRetries int) TestHarnessConf
 
 func cleanup(cfg TestHarnessConfig) {
 	os.Remove(cfg.KeyFile)
+	os.Remove(cfg.BlsKeyFile)
+	os.Remove(cfg.RelayerFile)
 	os.Remove(cfg.StateFile)
 	os.Remove(cfg.GenesisFile)
 }

@@ -68,6 +68,8 @@ type Node struct {
 	Testnet          *Testnet
 	Mode             Mode
 	PrivvalKey       crypto.PrivKey
+	PrivvalBlsKey    crypto.PrivKey
+	Relayer          string
 	NodeKey          crypto.PrivKey
 	IP               net.IP
 	ProxyPort        uint32

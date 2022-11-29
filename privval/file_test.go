@@ -24,17 +24,21 @@ func TestGenLoadValidator(t *testing.T) {
 
 	tempKeyFile, err := os.CreateTemp("", "priv_validator_key_")
 	require.Nil(t, err)
+	tempBlsKeyFile, err := os.CreateTemp("", "priv_validator_bls_key_")
+	require.Nil(t, err)
+	tempRelayerFile, err := os.CreateTemp("", "priv_validator_relayer_")
+	require.Nil(t, err)
 	tempStateFile, err := os.CreateTemp("", "priv_validator_state_")
 	require.Nil(t, err)
 
-	privVal := GenFilePV(tempKeyFile.Name(), tempStateFile.Name())
+	privVal := GenFilePV(tempKeyFile.Name(), tempBlsKeyFile.Name(), tempStateFile.Name(), tempRelayerFile.Name())
 
 	height := int64(100)
 	privVal.LastSignState.Height = height
 	privVal.Save()
 	addr := privVal.GetAddress()
 
-	privVal = LoadFilePV(tempKeyFile.Name(), tempStateFile.Name())
+	privVal = LoadFilePV(tempKeyFile.Name(), tempBlsKeyFile.Name(), tempStateFile.Name(), tempRelayerFile.Name())
 	assert.Equal(addr, privVal.GetAddress(), "expected privval addr to be the same")
 	assert.Equal(height, privVal.LastSignState.Height, "expected privval.LastHeight to have been saved")
 }
@@ -42,10 +46,14 @@ func TestGenLoadValidator(t *testing.T) {
 func TestResetValidator(t *testing.T) {
 	tempKeyFile, err := os.CreateTemp("", "priv_validator_key_")
 	require.Nil(t, err)
+	tempBlsKeyFile, err := os.CreateTemp("", "priv_validator_bls_key_")
+	require.Nil(t, err)
+	tempRelayerFile, err := os.CreateTemp("", "priv_validator_relayer_")
+	require.Nil(t, err)
 	tempStateFile, err := os.CreateTemp("", "priv_validator_state_")
 	require.Nil(t, err)
 
-	privVal := GenFilePV(tempKeyFile.Name(), tempStateFile.Name())
+	privVal := GenFilePV(tempKeyFile.Name(), tempBlsKeyFile.Name(), tempStateFile.Name(), tempRelayerFile.Name())
 	emptyState := FilePVLastSignState{filePath: tempStateFile.Name()}
 
 	// new priv val has empty state
@@ -73,6 +81,10 @@ func TestLoadOrGenValidator(t *testing.T) {
 
 	tempKeyFile, err := os.CreateTemp("", "priv_validator_key_")
 	require.Nil(t, err)
+	tempBlsKeyFile, err := os.CreateTemp("", "priv_validator_bls_key_")
+	require.Nil(t, err)
+	tempRelayerFile, err := os.CreateTemp("", "priv_validator_relayer_")
+	require.Nil(t, err)
 	tempStateFile, err := os.CreateTemp("", "priv_validator_state_")
 	require.Nil(t, err)
 
@@ -80,14 +92,22 @@ func TestLoadOrGenValidator(t *testing.T) {
 	if err := os.Remove(tempKeyFilePath); err != nil {
 		t.Error(err)
 	}
+	tempBlsKeyFilePath := tempBlsKeyFile.Name()
+	if err := os.Remove(tempBlsKeyFilePath); err != nil {
+		t.Error(err)
+	}
+	tempRelayerFilePath := tempRelayerFile.Name()
+	if err := os.Remove(tempRelayerFilePath); err != nil {
+		t.Error(err)
+	}
 	tempStateFilePath := tempStateFile.Name()
 	if err := os.Remove(tempStateFilePath); err != nil {
 		t.Error(err)
 	}
 
-	privVal := LoadOrGenFilePV(tempKeyFilePath, tempStateFilePath)
+	privVal := LoadOrGenFilePV(tempKeyFilePath, tempBlsKeyFilePath, tempStateFilePath, tempRelayerFilePath)
 	addr := privVal.GetAddress()
-	privVal = LoadOrGenFilePV(tempKeyFilePath, tempStateFilePath)
+	privVal = LoadOrGenFilePV(tempKeyFilePath, tempBlsKeyFilePath, tempStateFilePath, tempRelayerFilePath)
 	assert.Equal(addr, privVal.GetAddress(), "expected privval addr to be the same")
 }
 
@@ -160,10 +180,14 @@ func TestSignVote(t *testing.T) {
 
 	tempKeyFile, err := os.CreateTemp("", "priv_validator_key_")
 	require.Nil(t, err)
+	tempBlsKeyFile, err := os.CreateTemp("", "priv_validator_bls_key_")
+	require.Nil(t, err)
+	tempRelayerFile, err := os.CreateTemp("", "priv_validator_relayer_")
+	require.Nil(t, err)
 	tempStateFile, err := os.CreateTemp("", "priv_validator_state_")
 	require.Nil(t, err)
 
-	privVal := GenFilePV(tempKeyFile.Name(), tempStateFile.Name())
+	privVal := GenFilePV(tempKeyFile.Name(), tempBlsKeyFile.Name(), tempStateFile.Name(), tempRelayerFile.Name())
 
 	randbytes := tmrand.Bytes(tmhash.Size)
 	randbytes2 := tmrand.Bytes(tmhash.Size)
@@ -217,10 +241,14 @@ func TestSignProposal(t *testing.T) {
 
 	tempKeyFile, err := os.CreateTemp("", "priv_validator_key_")
 	require.Nil(t, err)
+	tempBlsKeyFile, err := os.CreateTemp("", "priv_validator_bls_key_")
+	require.Nil(t, err)
+	tempRelayerFile, err := os.CreateTemp("", "priv_validator_relayer_")
+	require.Nil(t, err)
 	tempStateFile, err := os.CreateTemp("", "priv_validator_state_")
 	require.Nil(t, err)
 
-	privVal := GenFilePV(tempKeyFile.Name(), tempStateFile.Name())
+	privVal := GenFilePV(tempKeyFile.Name(), tempBlsKeyFile.Name(), tempStateFile.Name(), tempRelayerFile.Name())
 
 	randbytes := tmrand.Bytes(tmhash.Size)
 	randbytes2 := tmrand.Bytes(tmhash.Size)
@@ -269,10 +297,14 @@ func TestSignProposal(t *testing.T) {
 func TestDifferByTimestamp(t *testing.T) {
 	tempKeyFile, err := os.CreateTemp("", "priv_validator_key_")
 	require.Nil(t, err)
+	tempBlsKeyFile, err := os.CreateTemp("", "priv_validator_bls_key_")
+	require.Nil(t, err)
+	tempRelayerFile, err := os.CreateTemp("", "priv_validator_relayer_")
+	require.Nil(t, err)
 	tempStateFile, err := os.CreateTemp("", "priv_validator_state_")
 	require.Nil(t, err)
 
-	privVal := GenFilePV(tempKeyFile.Name(), tempStateFile.Name())
+	privVal := GenFilePV(tempKeyFile.Name(), tempBlsKeyFile.Name(), tempStateFile.Name(), tempRelayerFile.Name())
 	randbytes := tmrand.Bytes(tmhash.Size)
 	block1 := types.BlockID{Hash: randbytes, PartSetHeader: types.PartSetHeader{Total: 5, Hash: randbytes}}
 	height, round := int64(10), int32(1)

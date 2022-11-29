@@ -130,6 +130,12 @@ genesis_file = "{{ js .BaseConfig.Genesis }}"
 # Path to the JSON file containing the private key to use as a validator in the consensus protocol
 priv_validator_key_file = "{{ js .BaseConfig.PrivValidatorKey }}"
 
+# Path to the JSON file containing the private bls key to use as a validator in the consensus protocol
+priv_validator_bls_key_file = "{{ js .BaseConfig.PrivValidatorBlsKey }}"
+
+# Path to the JSON file containing the relayer address to use as a validator in the consensus protocol
+priv_validator_relayer_file = "{{ js .BaseConfig.PrivValidatorRelayer }}"
+
 # Path to the JSON file containing the last sign state of a validator
 priv_validator_state_file = "{{ js .BaseConfig.PrivValidatorState }}"
 
@@ -560,6 +566,8 @@ func ResetTestRootWithChainID(testName string, chainID string) *Config {
 	configFilePath := filepath.Join(rootDir, defaultConfigFilePath)
 	genesisFilePath := filepath.Join(rootDir, baseConfig.Genesis)
 	privKeyFilePath := filepath.Join(rootDir, baseConfig.PrivValidatorKey)
+	privBlsKeyFilePath := filepath.Join(rootDir, baseConfig.PrivValidatorBlsKey)
+	privRelayerFilePath := filepath.Join(rootDir, baseConfig.PrivValidatorRelayer)
 	privStateFilePath := filepath.Join(rootDir, baseConfig.PrivValidatorState)
 
 	// Write default config file if missing.
@@ -575,6 +583,8 @@ func ResetTestRootWithChainID(testName string, chainID string) *Config {
 	}
 	// we always overwrite the priv val
 	tmos.MustWriteFile(privKeyFilePath, []byte(testPrivValidatorKey), 0o644)
+	tmos.MustWriteFile(privBlsKeyFilePath, []byte(testPrivValidatorBlsKey), 0o644)
+	tmos.MustWriteFile(privRelayerFilePath, []byte(testPrivValidatorRelayer), 0o644)
 	tmos.MustWriteFile(privStateFilePath, []byte(testPrivValidatorState), 0o644)
 
 	config := TestConfig().SetRoot(rootDir)
@@ -609,6 +619,11 @@ var testGenesisFmt = `{
         "type": "tendermint/PubKeyEd25519",
         "value":"AT/+aaL1eB0477Mud9JMm8Sh8BIvOYlPGC9KkIUmFaE="
       },
+      "bls_pub_key": {
+		"type": "tendermint/PubKeyBls12381",
+		"value": "jX+p12DtnSWMjyItjOjoz4GVglMdvBd1L16rd3PFQmqjh28ey/oNw28i1u645vdr"
+      },
+      "relayer": "A3258DCBF45DCA0DF052981870F2D1441A36D145",
       "power": "10",
       "name": ""
     }
@@ -626,6 +641,22 @@ var testPrivValidatorKey = `{
     "type": "tendermint/PrivKeyEd25519",
     "value": "EVkqJO/jIXp3rkASXfh9YnyToYXRXhBr6g9cQVxPFnQBP/5povV4HTjvsy530kybxKHwEi85iU8YL0qQhSYVoQ=="
   }
+}`
+
+var testPrivValidatorBlsKey = `{
+  "address": "71E60D36A7060F302A9DC71602375BFEBD2939F4",
+  "pub_key": {
+    "type": "tendermint/PubKeyBls12381",
+    "value": "jX+p12DtnSWMjyItjOjoz4GVglMdvBd1L16rd3PFQmqjh28ey/oNw28i1u645vdr"
+  },
+  "priv_key": {
+    "type": "tendermint/PrivKeyBls12381",
+    "value": "Qm0YPZWj+bUlzhsn7smTepKOXC3IHFo94LpsMnP3CjI="
+  }
+}`
+
+var testPrivValidatorRelayer = `{
+  "address": "A3258DCBF45DCA0DF052981870F2D1441A36D145"
 }`
 
 var testPrivValidatorState = `{

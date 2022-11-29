@@ -28,17 +28,19 @@ func initFiles(cmd *cobra.Command, args []string) error {
 func initFilesWithConfig(config *cfg.Config) error {
 	// private validator
 	privValKeyFile := config.PrivValidatorKeyFile()
+	privValBlsKeyFile := config.PrivValidatorBlsKeyFile()
+	privValRelayerFile := config.PrivValidatorRelayerFile()
 	privValStateFile := config.PrivValidatorStateFile()
 	var pv *privval.FilePV
 	if tmos.FileExists(privValKeyFile) {
-		pv = privval.LoadFilePV(privValKeyFile, privValStateFile)
+		pv = privval.LoadFilePV(privValKeyFile, privValBlsKeyFile, privValStateFile, privValRelayerFile)
 		logger.Info("Found private validator", "keyFile", privValKeyFile,
-			"stateFile", privValStateFile)
+			"blsKeyFile", privValBlsKeyFile, "relayerFile", privValRelayerFile, "stateFile", privValStateFile)
 	} else {
-		pv = privval.GenFilePV(privValKeyFile, privValStateFile)
+		pv = privval.GenFilePV(privValKeyFile, privValBlsKeyFile, privValStateFile, privValRelayerFile)
 		pv.Save()
 		logger.Info("Generated private validator", "keyFile", privValKeyFile,
-			"stateFile", privValStateFile)
+			"blsKeyFile", privValBlsKeyFile, "relayerFile", privValRelayerFile, "stateFile", privValStateFile)
 	}
 
 	nodeKeyFile := config.NodeKeyFile()
@@ -65,10 +67,20 @@ func initFilesWithConfig(config *cfg.Config) error {
 		if err != nil {
 			return fmt.Errorf("can't get pubkey: %w", err)
 		}
+		blsPubKey, err := pv.GetBlsPubKey()
+		if err != nil {
+			return fmt.Errorf("can't get bls pubkey: %w", err)
+		}
+		relayer, err := pv.GetRelayer()
+		if err != nil {
+			return fmt.Errorf("can't get relayer: %w", err)
+		}
 		genDoc.Validators = []types.GenesisValidator{{
-			Address: pubKey.Address(),
-			PubKey:  pubKey,
-			Power:   10,
+			Address:   pubKey.Address(),
+			PubKey:    pubKey,
+			BlsPubKey: blsPubKey,
+			Relayer:   relayer,
+			Power:     10,
 		}}
 
 		if err := genDoc.SaveAs(genFile); err != nil {

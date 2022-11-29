@@ -7,6 +7,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/tendermint/tendermint/crypto/bls12381"
 
 	dbm "github.com/tendermint/tm-db"
 
@@ -115,10 +116,11 @@ func TestPruneStates(t *testing.T) {
 				DiscardABCIResponses: false,
 			})
 			pk := ed25519.GenPrivKey().PubKey()
+			blsPk := bls12381.GenPrivKey().PubKey()
 
 			// Generate a bunch of state data. Validators change for heights ending with 3, and
 			// parameters when ending with 5.
-			validator := &types.Validator{Address: tmrand.Bytes(crypto.AddressSize), VotingPower: 100, PubKey: pk}
+			validator := &types.Validator{Address: tmrand.Bytes(crypto.AddressSize), VotingPower: 100, PubKey: pk, BlsPubKey: blsPk}
 			validatorSet := &types.ValidatorSet{
 				Validators: []*types.Validator{validator},
 				Proposer:   validator,

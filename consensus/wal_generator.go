@@ -39,8 +39,11 @@ func WALGenerateNBlocks(t *testing.T, wr io.Writer, numBlocks int) (err error) {
 	// NOTE: we can't import node package because of circular dependency.
 	// NOTE: we don't do handshake so need to set state.Version.Consensus.App directly.
 	privValidatorKeyFile := config.PrivValidatorKeyFile()
+	privValidatorBlsKeyFile := config.PrivValidatorBlsKeyFile()
+	privValidatorRelayerFile := config.PrivValidatorRelayerFile()
 	privValidatorStateFile := config.PrivValidatorStateFile()
-	privValidator := privval.LoadOrGenFilePV(privValidatorKeyFile, privValidatorStateFile)
+	privValidator := privval.LoadOrGenFilePV(privValidatorKeyFile, privValidatorBlsKeyFile,
+		privValidatorStateFile, privValidatorRelayerFile)
 	genDoc, err := types.GenesisDocFromFile(config.GenesisFile())
 	if err != nil {
 		return fmt.Errorf("failed to read genesis file: %w", err)

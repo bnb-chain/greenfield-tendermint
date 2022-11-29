@@ -12,8 +12,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-
 	"github.com/tendermint/tendermint/crypto"
+	"github.com/tendermint/tendermint/crypto/bls12381"
 	"github.com/tendermint/tendermint/crypto/ed25519"
 	tmmath "github.com/tendermint/tendermint/libs/math"
 	tmrand "github.com/tendermint/tendermint/libs/rand"
@@ -170,7 +170,10 @@ func BenchmarkValidatorSetCopy(b *testing.B) {
 	for i := 0; i < 1000; i++ {
 		privKey := ed25519.GenPrivKey()
 		pubKey := privKey.PubKey()
-		val := NewValidator(pubKey, 10)
+		blsSecKey := bls12381.GenPrivKey()
+		blsPubKey := blsSecKey.PubKey()
+		relayer := ed25519.GenPrivKey().PubKey().Address().String()
+		val := NewValidator(pubKey, blsPubKey, 10, relayer)
 		err := vset.UpdateWithChangeSet([]*Validator{val})
 		if err != nil {
 			panic("Failed to add validator")
@@ -311,7 +314,9 @@ func TestProposerSelection3(t *testing.T) {
 	for i := 0; i < 4; i++ {
 		// need to give all validators to have keys
 		pk := ed25519.GenPrivKey().PubKey()
+		blsPk := bls12381.GenPrivKey().PubKey()
 		vset.Validators[i].PubKey = pk
+		vset.Validators[i].BlsPubKey = blsPk
 		proposerOrder[i] = vset.GetProposer()
 		vset.IncrementProposerPriority(1)
 	}
@@ -372,10 +377,20 @@ func randPubKey() crypto.PubKey {
 	return ed25519.PubKey(tmrand.Bytes(32))
 }
 
+func randBlsPubKey() crypto.PubKey {
+	pubKey := make(bls12381.PubKey, bls12381.PubKeySize)
+	copy(pubKey, tmrand.Bytes(48))
+	return bls12381.PubKey(tmrand.Bytes(48))
+}
+
+func randRelayer() string {
+	return ed25519.GenPrivKey().PubKey().Address().String()
+}
+
 func randValidator(totalVotingPower int64) *Validator {
 	// this modulo limits the ProposerPriority/VotingPower to stay in the
 	// bounds of MaxTotalVotingPower minus the already existing voting power:
-	val := NewValidator(randPubKey(), int64(tmrand.Uint64()%uint64(MaxTotalVotingPower-totalVotingPower)))
+	val := NewValidator(randPubKey(), randBlsPubKey(), int64(tmrand.Uint64()%uint64(MaxTotalVotingPower-totalVotingPower)), randRelayer())
 	val.ProposerPriority = tmrand.Int64() % (MaxTotalVotingPower - totalVotingPower)
 	return val
 }
@@ -669,10 +684,13 @@ func TestSafeSubClip(t *testing.T) {
 // verification.
 func TestValidatorSet_VerifyCommit_All(t *testing.T) {
 	var (
-		privKey = ed25519.GenPrivKey()
-		pubKey  = privKey.PubKey()
-		v1      = NewValidator(pubKey, 1000)
-		vset    = NewValidatorSet([]*Validator{v1})
+		privKey    = ed25519.GenPrivKey()
+		pubKey     = privKey.PubKey()
+		blsPrivKey = bls12381.GenPrivKey()
+		blsPubKey  = blsPrivKey.PubKey()
+		relayer    = ed25519.GenPrivKey().PubKey().Address().String()
+		v1         = NewValidator(pubKey, blsPubKey, 1000, relayer)
+		vset       = NewValidatorSet([]*Validator{v1})
 
 		chainID = "Lalande21185"
 	)

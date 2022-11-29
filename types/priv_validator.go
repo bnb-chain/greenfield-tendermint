@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	"github.com/tendermint/tendermint/crypto"
+	"github.com/tendermint/tendermint/crypto/bls12381"
 	"github.com/tendermint/tendermint/crypto/ed25519"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 )
@@ -14,7 +15,8 @@ import (
 // that signs votes and proposals, and never double signs.
 type PrivValidator interface {
 	GetPubKey() (crypto.PubKey, error)
-
+	GetBlsPubKey() (crypto.PubKey, error)
+	GetRelayer() (string, error)
 	SignVote(chainID string, vote *tmproto.Vote) error
 	SignProposal(chainID string, proposal *tmproto.Proposal) error
 }
@@ -49,24 +51,38 @@ func (pvs PrivValidatorsByAddress) Swap(i, j int) {
 // Only use it for testing.
 type MockPV struct {
 	PrivKey              crypto.PrivKey
+	BlsPrivKey           crypto.PrivKey
+	Relayer              string
 	breakProposalSigning bool
 	breakVoteSigning     bool
 }
 
 func NewMockPV() MockPV {
-	return MockPV{ed25519.GenPrivKey(), false, false}
+	relayer := ed25519.GenPrivKey().PubKey().Address().String()
+	return MockPV{ed25519.GenPrivKey(), bls12381.GenPrivKey(), relayer, false, false}
 }
 
 // NewMockPVWithParams allows one to create a MockPV instance, but with finer
 // grained control over the operation of the mock validator. This is useful for
 // mocking test failures.
-func NewMockPVWithParams(privKey crypto.PrivKey, breakProposalSigning, breakVoteSigning bool) MockPV {
-	return MockPV{privKey, breakProposalSigning, breakVoteSigning}
+func NewMockPVWithParams(privKey crypto.PrivKey, blsPrivKey crypto.PrivKey, breakProposalSigning, breakVoteSigning bool) MockPV {
+	relayer := ed25519.GenPrivKey().PubKey().Address().String()
+	return MockPV{privKey, blsPrivKey, relayer, breakProposalSigning, breakVoteSigning}
 }
 
 // Implements PrivValidator.
 func (pv MockPV) GetPubKey() (crypto.PubKey, error) {
 	return pv.PrivKey.PubKey(), nil
+}
+
+// Implements PrivValidator.
+func (pv MockPV) GetBlsPubKey() (crypto.PubKey, error) {
+	return pv.BlsPrivKey.PubKey(), nil
+}
+
+// Implements PrivValidator.
+func (pv MockPV) GetRelayer() (string, error) {
+	return pv.Relayer, nil
 }
 
 // Implements PrivValidator.
@@ -103,9 +119,11 @@ func (pv MockPV) SignProposal(chainID string, proposal *tmproto.Proposal) error 
 
 func (pv MockPV) ExtractIntoValidator(votingPower int64) *Validator {
 	pubKey, _ := pv.GetPubKey()
+	blsPubKey, _ := pv.GetBlsPubKey()
 	return &Validator{
 		Address:     pubKey.Address(),
 		PubKey:      pubKey,
+		BlsPubKey:   blsPubKey,
 		VotingPower: votingPower,
 	}
 }
@@ -141,5 +159,6 @@ func (pv *ErroringMockPV) SignProposal(chainID string, proposal *tmproto.Proposa
 // NewErroringMockPV returns a MockPV that fails on each signing request. Again, for testing only.
 
 func NewErroringMockPV() *ErroringMockPV {
-	return &ErroringMockPV{MockPV{ed25519.GenPrivKey(), false, false}}
+	relayer := ed25519.GenPrivKey().PubKey().Address().String()
+	return &ErroringMockPV{MockPV{ed25519.GenPrivKey(), bls12381.GenPrivKey(), relayer, false, false}}
 }

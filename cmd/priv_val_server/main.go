@@ -15,10 +15,12 @@ import (
 
 func main() {
 	var (
-		addr             = flag.String("addr", ":26659", "Address of client to connect to")
-		chainID          = flag.String("chain-id", "mychain", "chain id")
-		privValKeyPath   = flag.String("priv-key", "", "priv val key file path")
-		privValStatePath = flag.String("priv-state", "", "priv val state file path")
+		addr              = flag.String("addr", ":26659", "Address of client to connect to")
+		chainID           = flag.String("chain-id", "mychain", "chain id")
+		relayer           = flag.String("relayer", "0xBe807Dddb074639cD9fA61b47676c064fc50D62C", "authorized relayer")
+		privValKeyPath    = flag.String("priv-key", "", "priv val key file path")
+		blsPrivValKeyPath = flag.String("bls-priv-key", "", "bls priv val key file path")
+		privValStatePath  = flag.String("priv-state", "", "priv val state file path")
 
 		logger = log.NewTMLogger(
 			log.NewSyncWriter(os.Stdout),
@@ -30,11 +32,13 @@ func main() {
 		"Starting private validator",
 		"addr", *addr,
 		"chainID", *chainID,
+		"relayer", *relayer,
 		"privKeyPath", *privValKeyPath,
+		"blsPrivKeyPath", *blsPrivValKeyPath,
 		"privStatePath", *privValStatePath,
 	)
 
-	pv := privval.LoadFilePV(*privValKeyPath, *privValStatePath)
+	pv := privval.LoadFilePV(*privValKeyPath, *blsPrivValKeyPath, *privValStatePath, *relayer)
 
 	var dialer privval.SocketDialer
 	protocol, address := tmnet.ProtocolAndAddress(*addr)

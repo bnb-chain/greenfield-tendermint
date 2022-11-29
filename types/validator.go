@@ -16,18 +16,21 @@ import (
 // NOTE: The ProposerPriority is not included in Validator.Hash();
 // make sure to update that method if changes are made here
 type Validator struct {
-	Address     Address       `json:"address"`
-	PubKey      crypto.PubKey `json:"pub_key"`
-	VotingPower int64         `json:"voting_power"`
-
-	ProposerPriority int64 `json:"proposer_priority"`
+	Address          Address       `json:"address"`
+	PubKey           crypto.PubKey `json:"pub_key"`
+	BlsPubKey        crypto.PubKey `json:"bls_pub_key"`
+	Relayer          string        `json:"relayer"`
+	VotingPower      int64         `json:"voting_power"`
+	ProposerPriority int64         `json:"proposer_priority"`
 }
 
 // NewValidator returns a new validator with the given pubkey and voting power.
-func NewValidator(pubKey crypto.PubKey, votingPower int64) *Validator {
+func NewValidator(pubKey crypto.PubKey, blsPubKey crypto.PubKey, votingPower int64, relayer string) *Validator {
 	return &Validator{
 		Address:          pubKey.Address(),
 		PubKey:           pubKey,
+		BlsPubKey:        blsPubKey,
+		Relayer:          relayer,
 		VotingPower:      votingPower,
 		ProposerPriority: 0,
 	}
@@ -40,6 +43,9 @@ func (v *Validator) ValidateBasic() error {
 	}
 	if v.PubKey == nil {
 		return errors.New("validator does not have a public key")
+	}
+	if v.BlsPubKey == nil {
+		return errors.New("validator does not have a bls public key")
 	}
 
 	if v.VotingPower < 0 {
@@ -87,17 +93,21 @@ func (v *Validator) CompareProposerPriority(other *Validator) *Validator {
 //
 // 1. address
 // 2. public key
-// 3. voting power
-// 4. proposer priority
+// 3. bls public key
+// 4. voting power
+// 5. proposer priority
+// 6. relayer address
 func (v *Validator) String() string {
 	if v == nil {
 		return "nil-Validator"
 	}
-	return fmt.Sprintf("Validator{%v %v VP:%v A:%v}",
+	return fmt.Sprintf("Validator{%v %v %v VP:%v A:%v %v}",
 		v.Address,
 		v.PubKey,
+		v.BlsPubKey,
 		v.VotingPower,
-		v.ProposerPriority)
+		v.ProposerPriority,
+		v.Relayer)
 }
 
 // ValidatorListString returns a prettified validator list for logging purposes.
@@ -120,8 +130,15 @@ func (v *Validator) Bytes() []byte {
 		panic(err)
 	}
 
+	blsPk, err := ce.BlsPubKeyToProto(v.BlsPubKey)
+	if err != nil {
+		panic(err)
+	}
+
 	pbv := tmproto.SimpleValidator{
 		PubKey:      &pk,
+		BlsPubKey:   &blsPk,
+		Relayer:     v.Relayer,
 		VotingPower: v.VotingPower,
 	}
 
@@ -143,9 +160,16 @@ func (v *Validator) ToProto() (*tmproto.Validator, error) {
 		return nil, err
 	}
 
+	blsPk, err := ce.BlsPubKeyToProto(v.BlsPubKey)
+	if err != nil {
+		return nil, err
+	}
+
 	vp := tmproto.Validator{
 		Address:          v.Address,
 		PubKey:           pk,
+		BlsPubKey:        blsPk,
+		Relayer:          v.Relayer,
 		VotingPower:      v.VotingPower,
 		ProposerPriority: v.ProposerPriority,
 	}
@@ -164,9 +188,15 @@ func ValidatorFromProto(vp *tmproto.Validator) (*Validator, error) {
 	if err != nil {
 		return nil, err
 	}
+	blsPk, err := ce.BlsPubKeyFromProto(vp.BlsPubKey)
+	if err != nil {
+		return nil, err
+	}
 	v := new(Validator)
 	v.Address = vp.GetAddress()
 	v.PubKey = pk
+	v.BlsPubKey = blsPk
+	v.Relayer = vp.GetRelayer()
 	v.VotingPower = vp.GetVotingPower()
 	v.ProposerPriority = vp.GetProposerPriority()
 
@@ -188,6 +218,14 @@ func RandValidator(randPower bool, minPower int64) (*Validator, PrivValidator) {
 	if err != nil {
 		panic(fmt.Errorf("could not retrieve pubkey %w", err))
 	}
-	val := NewValidator(pubKey, votePower)
+
+	blsPubKey, err := privVal.GetBlsPubKey()
+	if err != nil {
+		panic(fmt.Errorf("could not generate bls secret key %w", err))
+	}
+
+	relayer := privVal.Relayer
+
+	val := NewValidator(pubKey, blsPubKey, votePower, relayer)
 	return val, privVal
 }

@@ -15,16 +15,18 @@ type Config struct {
 	Listen           string
 	Protocol         string
 	Dir              string
-	Mode             string                      `toml:"mode"`
-	PersistInterval  uint64                      `toml:"persist_interval"`
-	SnapshotInterval uint64                      `toml:"snapshot_interval"`
-	RetainBlocks     uint64                      `toml:"retain_blocks"`
-	ValidatorUpdates map[string]map[string]uint8 `toml:"validator_update"`
-	PrivValServer    string                      `toml:"privval_server"`
-	PrivValKey       string                      `toml:"privval_key"`
-	PrivValState     string                      `toml:"privval_state"`
-	Misbehaviors     map[string]string           `toml:"misbehaviors"`
-	KeyType          string                      `toml:"key_type"`
+	Mode             string                                 `toml:"mode"`
+	PersistInterval  uint64                                 `toml:"persist_interval"`
+	SnapshotInterval uint64                                 `toml:"snapshot_interval"`
+	RetainBlocks     uint64                                 `toml:"retain_blocks"`
+	ValidatorUpdates map[string]map[string]map[string]uint8 `toml:"validator_update"`
+	PrivValServer    string                                 `toml:"privval_server"`
+	PrivValKey       string                                 `toml:"privval_key"`
+	PrivValBlsKey    string                                 `toml:"privval_bls_key"`
+	Relayer          string                                 `toml:"relayer"`
+	PrivValState     string                                 `toml:"privval_state"`
+	Misbehaviors     map[string]string                      `toml:"misbehaviors"`
+	KeyType          string                                 `toml:"key_type"`
 }
 
 // App extracts out the application specific configuration parameters

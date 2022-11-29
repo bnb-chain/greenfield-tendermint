@@ -131,7 +131,8 @@ func startNode(cfg *Config) error {
 	}
 
 	n, err := node.NewNode(tmcfg,
-		privval.LoadOrGenFilePV(tmcfg.PrivValidatorKeyFile(), tmcfg.PrivValidatorStateFile()),
+		privval.LoadOrGenFilePV(tmcfg.PrivValidatorKeyFile(), tmcfg.PrivValidatorBlsKeyFile(),
+			tmcfg.PrivValidatorStateFile(), tmcfg.PrivValidatorRelayer),
 		nodeKey,
 		proxy.NewLocalClientCreator(app),
 		node.DefaultGenesisDocProviderFunc(tmcfg),
@@ -223,7 +224,8 @@ func startMaverick(cfg *Config) error {
 	}
 
 	n, err := maverick.NewNode(tmcfg,
-		maverick.LoadOrGenFilePV(tmcfg.PrivValidatorKeyFile(), tmcfg.PrivValidatorStateFile()),
+		maverick.LoadOrGenFilePV(tmcfg.PrivValidatorKeyFile(), tmcfg.PrivValidatorBlsKeyFile(),
+			tmcfg.PrivValidatorStateFile(), tmcfg.PrivValidatorRelayer),
 		nodeKey,
 		proxy.NewLocalClientCreator(app),
 		maverick.DefaultGenesisDocProviderFunc(tmcfg),
@@ -241,7 +243,7 @@ func startMaverick(cfg *Config) error {
 
 // startSigner starts a signer server connecting to the given endpoint.
 func startSigner(cfg *Config) error {
-	filePV := privval.LoadFilePV(cfg.PrivValKey, cfg.PrivValState)
+	filePV := privval.LoadFilePV(cfg.PrivValKey, cfg.PrivValBlsKey, cfg.PrivValState, cfg.Relayer)
 
 	protocol, address := tmnet.ProtocolAndAddress(cfg.PrivValServer)
 	var dialFn privval.SocketDialer

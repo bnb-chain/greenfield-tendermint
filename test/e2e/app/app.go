@@ -68,8 +68,8 @@ type Config struct {
 	// validator must be done by returning it with power 0, and any validators
 	// not specified are not changed.
 	//
-	// height <-> pubkey <-> voting power
-	ValidatorUpdates map[string]map[string]uint8 `toml:"validator_update"`
+	// height <-> pubkey <->  blspubkey <-> voting power
+	ValidatorUpdates map[string]map[string]map[string]uint8 `toml:"validator_update"`
 }
 
 func DefaultConfig(dir string) *Config {
@@ -269,13 +269,22 @@ func (app *Application) validatorUpdates(height uint64) (abci.ValidatorUpdates, 
 	}
 
 	valUpdates := abci.ValidatorUpdates{}
-	for keyString, power := range updates {
+	for keyString, blskeyStringPower := range updates {
 
 		keyBytes, err := base64.StdEncoding.DecodeString(keyString)
 		if err != nil {
 			return nil, fmt.Errorf("invalid base64 pubkey value %q: %w", keyString, err)
 		}
-		valUpdates = append(valUpdates, abci.UpdateValidator(keyBytes, int64(power), app.cfg.KeyType))
+
+		for blskeyString, power := range blskeyStringPower {
+			blsKeyBytes, err := base64.StdEncoding.DecodeString(blskeyString)
+			if err != nil {
+				return nil, fmt.Errorf("invalid base64 pubkey value %q: %w", keyString, err)
+			}
+			valUpdates = append(valUpdates, abci.UpdateValidator(keyBytes, int64(power), app.cfg.KeyType, blsKeyBytes))
+			break
+		}
+
 	}
 	return valUpdates, nil
 }

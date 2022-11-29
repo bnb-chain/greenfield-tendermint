@@ -347,8 +347,10 @@ message Validator {
 
 // ValidatorUpdate
 message ValidatorUpdate {
-  tendermint.crypto.PublicKey pub_key = 1 [(gogoproto.nullable) = false];
-  int64                       power   = 2;
+  tendermint.crypto.PublicKey    pub_key         = 1 [(gogoproto.nullable) = false];
+  int64                          power           = 2;
+  tendermint.crypto.BlsPublicKey bls_pub_key     = 3;
+  string                         relayer         = 4;
 }
 
 // VoteInfo

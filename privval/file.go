@@ -8,8 +8,8 @@ import (
 	"time"
 
 	"github.com/gogo/protobuf/proto"
-
 	"github.com/tendermint/tendermint/crypto"
+	"github.com/tendermint/tendermint/crypto/bls12381"
 	"github.com/tendermint/tendermint/crypto/ed25519"
 	tmbytes "github.com/tendermint/tendermint/libs/bytes"
 	tmjson "github.com/tendermint/tendermint/libs/json"
@@ -60,6 +60,32 @@ func (pvKey FilePVKey) Save() {
 	}
 
 	jsonBytes, err := tmjson.MarshalIndent(pvKey, "", "  ")
+	if err != nil {
+		panic(err)
+	}
+
+	if err := tempfile.WriteFileAtomic(outFile, jsonBytes, 0o600); err != nil {
+		panic(err)
+	}
+}
+
+//-------------------------------------------------------------------------------
+
+// FilePVRelayer stores the immutable part of PrivValidator.
+type FilePVRelayer struct {
+	Address string `json:"address"`
+
+	filePath string
+}
+
+// Save persists the FilePVKey to its filePath.
+func (pvRelayer FilePVRelayer) Save() {
+	outFile := pvRelayer.filePath
+	if outFile == "" {
+		panic("cannot save PrivValidator relayer: filePath not set")
+	}
+
+	jsonBytes, err := tmjson.MarshalIndent(pvRelayer, "", "  ")
 	if err != nil {
 		panic(err)
 	}
@@ -147,17 +173,29 @@ func (lss *FilePVLastSignState) Save() {
 // if the process crashes after signing but before the resulting consensus message is processed.
 type FilePV struct {
 	Key           FilePVKey
+	BlsKey        FilePVKey
+	Relayer       FilePVRelayer
 	LastSignState FilePVLastSignState
 }
 
 // NewFilePV generates a new validator from the given key and paths.
-func NewFilePV(privKey crypto.PrivKey, keyFilePath, stateFilePath string) *FilePV {
+func NewFilePV(privKey, blsPrivKey crypto.PrivKey, keyFilePath, blsKeyFilePath, stateFilePath, relayerFilePath string) *FilePV {
 	return &FilePV{
 		Key: FilePVKey{
 			Address:  privKey.PubKey().Address(),
 			PubKey:   privKey.PubKey(),
 			PrivKey:  privKey,
 			filePath: keyFilePath,
+		},
+		BlsKey: FilePVKey{
+			Address:  blsPrivKey.PubKey().Address(),
+			PubKey:   blsPrivKey.PubKey(),
+			PrivKey:  blsPrivKey,
+			filePath: blsKeyFilePath,
+		},
+		Relayer: FilePVRelayer{
+			Address:  ed25519.GenPrivKey().PubKey().Address().String(),
+			filePath: relayerFilePath,
 		},
 		LastSignState: FilePVLastSignState{
 			Step:     stepNone,
@@ -168,39 +206,36 @@ func NewFilePV(privKey crypto.PrivKey, keyFilePath, stateFilePath string) *FileP
 
 // GenFilePV generates a new validator with randomly generated private key
 // and sets the filePaths, but does not call Save().
-func GenFilePV(keyFilePath, stateFilePath string) *FilePV {
-	return NewFilePV(ed25519.GenPrivKey(), keyFilePath, stateFilePath)
+func GenFilePV(keyFilePath, blsKeyFilePath, stateFilePath, relayerFilePath string) *FilePV {
+	return NewFilePV(ed25519.GenPrivKey(), bls12381.GenPrivKey(), keyFilePath, blsKeyFilePath, stateFilePath, relayerFilePath)
 }
 
 // LoadFilePV loads a FilePV from the filePaths.  The FilePV handles double
 // signing prevention by persisting data to the stateFilePath.  If either file path
 // does not exist, the program will exit.
-func LoadFilePV(keyFilePath, stateFilePath string) *FilePV {
-	return loadFilePV(keyFilePath, stateFilePath, true)
+func LoadFilePV(keyFilePath, blsKeyFilePath, stateFilePath, relayerFilePath string) *FilePV {
+	return loadFilePV(keyFilePath, blsKeyFilePath, stateFilePath, true, relayerFilePath)
 }
 
 // LoadFilePVEmptyState loads a FilePV from the given keyFilePath, with an empty LastSignState.
 // If the keyFilePath does not exist, the program will exit.
-func LoadFilePVEmptyState(keyFilePath, stateFilePath string) *FilePV {
-	return loadFilePV(keyFilePath, stateFilePath, false)
+func LoadFilePVEmptyState(keyFilePath, blsKeyFilePath, stateFilePath, relayerFilePath string) *FilePV {
+	return loadFilePV(keyFilePath, blsKeyFilePath, stateFilePath, false, relayerFilePath)
 }
 
 // If loadState is true, we load from the stateFilePath. Otherwise, we use an empty LastSignState.
-func loadFilePV(keyFilePath, stateFilePath string, loadState bool) *FilePV {
-	keyJSONBytes, err := os.ReadFile(keyFilePath)
-	if err != nil {
-		tmos.Exit(err.Error())
-	}
-	pvKey := FilePVKey{}
-	err = tmjson.Unmarshal(keyJSONBytes, &pvKey)
-	if err != nil {
-		tmos.Exit(fmt.Sprintf("Error reading PrivValidator key from %v: %v\n", keyFilePath, err))
-	}
-
+func loadFilePV(keyFilePath, blsKeyFilePath, stateFilePath string, loadState bool, relayerFilePath string) *FilePV {
+	pvKey := readFilePVKey(keyFilePath)
 	// overwrite pubkey and address for convenience
 	pvKey.PubKey = pvKey.PrivKey.PubKey()
 	pvKey.Address = pvKey.PubKey.Address()
 	pvKey.filePath = keyFilePath
+
+	pvBlsKey := readFilePVKey(blsKeyFilePath)
+	// overwrite pubkey and address for convenience
+	pvBlsKey.PubKey = pvBlsKey.PrivKey.PubKey()
+	pvBlsKey.Address = pvBlsKey.PubKey.Address()
+	pvBlsKey.filePath = blsKeyFilePath
 
 	pvState := FilePVLastSignState{}
 
@@ -217,20 +252,51 @@ func loadFilePV(keyFilePath, stateFilePath string, loadState bool) *FilePV {
 
 	pvState.filePath = stateFilePath
 
+	pvRelayer := readFilePVRelayer(relayerFilePath)
+	pvRelayer.filePath = relayerFilePath
+
 	return &FilePV{
 		Key:           pvKey,
+		BlsKey:        pvBlsKey,
 		LastSignState: pvState,
+		Relayer:       pvRelayer,
 	}
+}
+
+func readFilePVKey(keyFilePath string) FilePVKey {
+	keyJSONBytes, err := os.ReadFile(keyFilePath)
+	if err != nil {
+		tmos.Exit(err.Error())
+	}
+	pvKey := FilePVKey{}
+	err = tmjson.Unmarshal(keyJSONBytes, &pvKey)
+	if err != nil {
+		tmos.Exit(fmt.Sprintf("Error reading PrivValidator key from %v: %v\n", keyFilePath, err))
+	}
+	return pvKey
+}
+
+func readFilePVRelayer(relayerFilePath string) FilePVRelayer {
+	keyJSONBytes, err := os.ReadFile(relayerFilePath)
+	if err != nil {
+		tmos.Exit(err.Error())
+	}
+	pvRelayer := FilePVRelayer{}
+	err = tmjson.Unmarshal(keyJSONBytes, &pvRelayer)
+	if err != nil {
+		tmos.Exit(fmt.Sprintf("Error reading PrivValidator relayer from %v: %v\n", relayerFilePath, err))
+	}
+	return pvRelayer
 }
 
 // LoadOrGenFilePV loads a FilePV from the given filePaths
 // or else generates a new one and saves it to the filePaths.
-func LoadOrGenFilePV(keyFilePath, stateFilePath string) *FilePV {
+func LoadOrGenFilePV(keyFilePath, blsKeyFilePath, stateFilePath string, relayer string) *FilePV {
 	var pv *FilePV
 	if tmos.FileExists(keyFilePath) {
-		pv = LoadFilePV(keyFilePath, stateFilePath)
+		pv = LoadFilePV(keyFilePath, blsKeyFilePath, stateFilePath, relayer)
 	} else {
-		pv = GenFilePV(keyFilePath, stateFilePath)
+		pv = GenFilePV(keyFilePath, blsKeyFilePath, stateFilePath, relayer)
 		pv.Save()
 	}
 	return pv
@@ -246,6 +312,18 @@ func (pv *FilePV) GetAddress() types.Address {
 // Implements PrivValidator.
 func (pv *FilePV) GetPubKey() (crypto.PubKey, error) {
 	return pv.Key.PubKey, nil
+}
+
+// GetBlsPubKey returns the bls public key of the validator.
+// Implements PrivValidator.
+func (pv *FilePV) GetBlsPubKey() (crypto.PubKey, error) {
+	return pv.BlsKey.PubKey, nil
+}
+
+// GetRelayer returns the relayer address of the validator.
+// Implements PrivValidator.
+func (pv *FilePV) GetRelayer() (string, error) {
+	return pv.Relayer.Address, nil
 }
 
 // SignVote signs a canonical representation of the vote, along with the
@@ -269,6 +347,8 @@ func (pv *FilePV) SignProposal(chainID string, proposal *tmproto.Proposal) error
 // Save persists the FilePV to disk.
 func (pv *FilePV) Save() {
 	pv.Key.Save()
+	pv.BlsKey.Save()
+	pv.Relayer.Save()
 	pv.LastSignState.Save()
 }
 

@@ -6,7 +6,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-
+	"github.com/tendermint/tendermint/crypto/bls12381"
 	"github.com/tendermint/tendermint/crypto/ed25519"
 	tmjson "github.com/tendermint/tendermint/libs/json"
 	tmtime "github.com/tendermint/tendermint/types/time"
@@ -77,10 +77,12 @@ func TestGenesisGood(t *testing.T) {
 	assert.NoError(t, err, "expected no error for good genDoc json")
 
 	pubkey := ed25519.GenPrivKey().PubKey()
+	blsPubKey := bls12381.GenPrivKey().PubKey()
+	relayer := ed25519.GenPrivKey().PubKey().Address().String()
 	// create a base gendoc from struct
 	baseGenDoc := &GenesisDoc{
 		ChainID:    "abc",
-		Validators: []GenesisValidator{{pubkey.Address(), pubkey, 10, "myval"}},
+		Validators: []GenesisValidator{{pubkey.Address(), pubkey, blsPubKey, relayer, 10, "myval"}},
 	}
 	genDocBytes, err = tmjson.Marshal(baseGenDoc)
 	assert.NoError(t, err, "error marshaling genDoc")
@@ -153,11 +155,13 @@ func TestGenesisValidatorHash(t *testing.T) {
 
 func randomGenesisDoc() *GenesisDoc {
 	pubkey := ed25519.GenPrivKey().PubKey()
+	blsPubKey := bls12381.GenPrivKey().PubKey()
+	relayer := ed25519.GenPrivKey().PubKey().Address().String()
 	return &GenesisDoc{
 		GenesisTime:     tmtime.Now(),
 		ChainID:         "abc",
 		InitialHeight:   1000,
-		Validators:      []GenesisValidator{{pubkey.Address(), pubkey, 10, "myval"}},
+		Validators:      []GenesisValidator{{pubkey.Address(), pubkey, blsPubKey, relayer, 10, "myval"}},
 		ConsensusParams: DefaultConsensusParams(),
 		AppHash:         []byte{1, 2, 3},
 	}

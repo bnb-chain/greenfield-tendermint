@@ -15,6 +15,7 @@ import (
 	"time"
 
 	"github.com/BurntSushi/toml"
+	"github.com/tendermint/tendermint/crypto/bls12381"
 
 	"github.com/tendermint/tendermint/config"
 	"github.com/tendermint/tendermint/crypto/ed25519"
@@ -30,12 +31,15 @@ const (
 	AppAddressTCP  = "tcp://127.0.0.1:30000"
 	AppAddressUNIX = "unix:///var/run/app.sock"
 
-	PrivvalAddressTCP     = "tcp://0.0.0.0:27559"
-	PrivvalAddressUNIX    = "unix:///var/run/privval.sock"
-	PrivvalKeyFile        = "config/priv_validator_key.json"
-	PrivvalStateFile      = "data/priv_validator_state.json"
-	PrivvalDummyKeyFile   = "config/dummy_validator_key.json"
-	PrivvalDummyStateFile = "data/dummy_validator_state.json"
+	PrivvalAddressTCP      = "tcp://0.0.0.0:27559"
+	PrivvalAddressUNIX     = "unix:///var/run/privval.sock"
+	PrivvalKeyFile         = "config/priv_validator_key.json"
+	PrivvalBlsKeyFile      = "config/priv_validator_bls_key.json"
+	PrivvalRelayerFile     = "config/priv_validator_relayer.json"
+	PrivvalStateFile       = "data/priv_validator_state.json"
+	PrivvalDummyKeyFile    = "config/dummy_validator_key.json"
+	PrivvalDummyBlsKeyFile = "config/dummy_validator_bls_key.json"
+	PrivvalDummyStateFile  = "data/dummy_validator_state.json"
 )
 
 // Setup sets up the testnet configuration.
@@ -108,15 +112,21 @@ func Setup(testnet *e2e.Testnet, infp infra.Provider) error {
 		}
 
 		(privval.NewFilePV(node.PrivvalKey,
+			node.PrivvalBlsKey,
 			filepath.Join(nodeDir, PrivvalKeyFile),
+			filepath.Join(nodeDir, PrivvalBlsKeyFile),
 			filepath.Join(nodeDir, PrivvalStateFile),
+			filepath.Join(nodeDir, PrivvalRelayerFile),
 		)).Save()
 
 		// Set up a dummy validator. Tendermint requires a file PV even when not used, so we
 		// give it a dummy such that it will fail if it actually tries to use it.
 		(privval.NewFilePV(ed25519.GenPrivKey(),
+			bls12381.GenPrivKey(),
 			filepath.Join(nodeDir, PrivvalDummyKeyFile),
+			filepath.Join(nodeDir, PrivvalDummyBlsKeyFile),
 			filepath.Join(nodeDir, PrivvalDummyStateFile),
+			filepath.Join(nodeDir, PrivvalRelayerFile),
 		)).Save()
 	}
 

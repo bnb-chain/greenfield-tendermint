@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/tendermint/tendermint/crypto"
+	"github.com/tendermint/tendermint/crypto/bls12381"
 	"github.com/tendermint/tendermint/crypto/ed25519"
 	"github.com/tendermint/tendermint/crypto/tmhash"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
@@ -60,6 +61,9 @@ func (pkz privKeys) Extend(n int) privKeys {
 // 	return append(pkz, extra...)
 // }
 
+var blsPk = bls12381.GenPrivKey().PubKey()
+var relayer = ed25519.GenPrivKey().PubKey().Address().String()
+
 // ToValidators produces a valset from the set of keys.
 // The first key has weight `init` and it increases by `inc` every step
 // so we can have all the same weight, or a simple linear distribution
@@ -67,7 +71,7 @@ func (pkz privKeys) Extend(n int) privKeys {
 func (pkz privKeys) ToValidators(init, inc int64) *types.ValidatorSet {
 	res := make([]*types.Validator, len(pkz))
 	for i, k := range pkz {
-		res[i] = types.NewValidator(k.PubKey(), init+int64(i)*inc)
+		res[i] = types.NewValidator(k.PubKey(), blsPk, init+int64(i)*inc, relayer)
 	}
 	return types.NewValidatorSet(res)
 }

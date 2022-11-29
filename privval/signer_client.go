@@ -90,6 +90,16 @@ func (sc *SignerClient) GetPubKey() (crypto.PubKey, error) {
 	return pk, nil
 }
 
+// GetBlsPubKey is not need for signer client now, it is only used internally.
+func (sc *SignerClient) GetBlsPubKey() (crypto.PubKey, error) {
+	return nil, nil
+}
+
+// GetRelayer is not need for signer client now, it is only used internally.
+func (sc *SignerClient) GetRelayer() (string, error) {
+	return "", nil
+}
+
 // SignVote requests a remote signer to sign a vote
 func (sc *SignerClient) SignVote(chainID string, vote *tmproto.Vote) error {
 	response, err := sc.endpoint.SendRequest(mustWrapMsg(&privvalproto.SignVoteRequest{Vote: vote, ChainId: chainID}))

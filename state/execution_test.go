@@ -8,6 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
+	"github.com/tendermint/tendermint/crypto/bls12381"
 
 	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/crypto"
@@ -279,13 +280,21 @@ func TestValidateValidatorUpdates(t *testing.T) {
 
 func TestUpdateValidators(t *testing.T) {
 	pubkey1 := ed25519.GenPrivKey().PubKey()
-	val1 := types.NewValidator(pubkey1, 10)
+	blsPubkey1 := bls12381.GenPrivKey().PubKey()
+	relayer1 := ed25519.GenPrivKey().PubKey().Address().String()
+	val1 := types.NewValidator(pubkey1, blsPubkey1, 10, relayer1)
 	pubkey2 := ed25519.GenPrivKey().PubKey()
-	val2 := types.NewValidator(pubkey2, 20)
+	blsPubkey2 := bls12381.GenPrivKey().PubKey()
+	relayer2 := ed25519.GenPrivKey().PubKey().Address().String()
+	val2 := types.NewValidator(pubkey2, blsPubkey2, 20, relayer2)
 
 	pk, err := cryptoenc.PubKeyToProto(pubkey1)
 	require.NoError(t, err)
+	blsPk, err := cryptoenc.BlsPubKeyToProto(blsPubkey1)
+	require.NoError(t, err)
 	pk2, err := cryptoenc.PubKeyToProto(pubkey2)
+	require.NoError(t, err)
+	blsPk2, err := cryptoenc.BlsPubKeyToProto(blsPubkey2)
 	require.NoError(t, err)
 
 	testCases := []struct {
@@ -300,28 +309,28 @@ func TestUpdateValidators(t *testing.T) {
 		{
 			"adding a validator is OK",
 			types.NewValidatorSet([]*types.Validator{val1}),
-			[]abci.ValidatorUpdate{{PubKey: pk2, Power: 20}},
+			[]abci.ValidatorUpdate{{PubKey: pk2, BlsPubKey: &blsPk2, Power: 20}},
 			types.NewValidatorSet([]*types.Validator{val1, val2}),
 			false,
 		},
 		{
 			"updating a validator is OK",
 			types.NewValidatorSet([]*types.Validator{val1}),
-			[]abci.ValidatorUpdate{{PubKey: pk, Power: 20}},
-			types.NewValidatorSet([]*types.Validator{types.NewValidator(pubkey1, 20)}),
+			[]abci.ValidatorUpdate{{PubKey: pk, BlsPubKey: &blsPk, Power: 20}},
+			types.NewValidatorSet([]*types.Validator{types.NewValidator(pubkey1, blsPubkey1, 20, relayer1)}),
 			false,
 		},
 		{
 			"removing a validator is OK",
 			types.NewValidatorSet([]*types.Validator{val1, val2}),
-			[]abci.ValidatorUpdate{{PubKey: pk2, Power: 0}},
+			[]abci.ValidatorUpdate{{PubKey: pk2, BlsPubKey: &blsPk2, Power: 0}},
 			types.NewValidatorSet([]*types.Validator{val1}),
 			false,
 		},
 		{
 			"removing a non-existing validator results in error",
 			types.NewValidatorSet([]*types.Validator{val1}),
-			[]abci.ValidatorUpdate{{PubKey: pk2, Power: 0}},
+			[]abci.ValidatorUpdate{{PubKey: pk2, BlsPubKey: &blsPk2, Power: 0}},
 			types.NewValidatorSet([]*types.Validator{val1}),
 			true,
 		},
@@ -392,8 +401,11 @@ func TestEndBlockValidatorUpdates(t *testing.T) {
 	pubkey := ed25519.GenPrivKey().PubKey()
 	pk, err := cryptoenc.PubKeyToProto(pubkey)
 	require.NoError(t, err)
+	blsPubkey := bls12381.GenPrivKey().PubKey()
+	blsPk, err := cryptoenc.BlsPubKeyToProto(blsPubkey)
+	require.NoError(t, err)
 	app.ValidatorUpdates = []abci.ValidatorUpdate{
-		{PubKey: pk, Power: 10},
+		{PubKey: pk, BlsPubKey: &blsPk, Power: 10},
 	}
 
 	state, _, err = blockExec.ApplyBlock(state, blockID, block)
@@ -449,9 +461,11 @@ func TestEndBlockValidatorUpdatesResultingInEmptySet(t *testing.T) {
 
 	vp, err := cryptoenc.PubKeyToProto(state.Validators.Validators[0].PubKey)
 	require.NoError(t, err)
+	vpBls, err := cryptoenc.BlsPubKeyToProto(state.Validators.Validators[0].BlsPubKey)
+	require.NoError(t, err)
 	// Remove the only validator
 	app.ValidatorUpdates = []abci.ValidatorUpdate{
-		{PubKey: vp, Power: 0},
+		{PubKey: vp, BlsPubKey: &vpBls, Power: 0},
 	}
 
 	assert.NotPanics(t, func() { state, _, err = blockExec.ApplyBlock(state, blockID, block) })

@@ -15,3 +15,11 @@ message PublicKey {
     bytes secp256k1 = 2;
   }
 }
+
+// BlsPublicKey defines the bls key for use with Tendermint Validators
+message BlsPublicKey {
+  option (gogoproto.compare) = true;
+  option (gogoproto.equal)   = true;
+
+  bytes bls12381 = 1;
+}

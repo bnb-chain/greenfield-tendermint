@@ -5,6 +5,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/tendermint/tendermint/crypto/ed25519"
 )
 
 func TestValidatorProtoBuf(t *testing.T) {
@@ -41,13 +42,15 @@ func TestValidatorProtoBuf(t *testing.T) {
 func TestValidatorValidateBasic(t *testing.T) {
 	priv := NewMockPV()
 	pubKey, _ := priv.GetPubKey()
+	blsPubKey, _ := priv.GetBlsPubKey()
+	relayer := ed25519.GenPrivKey().PubKey().Address().String()
 	testCases := []struct {
 		val *Validator
 		err bool
 		msg string
 	}{
 		{
-			val: NewValidator(pubKey, 1),
+			val: NewValidator(pubKey, blsPubKey, 1, relayer),
 			err: false,
 			msg: "",
 		},
@@ -64,22 +67,31 @@ func TestValidatorValidateBasic(t *testing.T) {
 			msg: "validator does not have a public key",
 		},
 		{
-			val: NewValidator(pubKey, -1),
+			val: &Validator{
+				PubKey: pubKey,
+			},
+			err: true,
+			msg: "validator does not have a bls public key",
+		},
+		{
+			val: NewValidator(pubKey, blsPubKey, -1, relayer),
 			err: true,
 			msg: "validator has negative voting power",
 		},
 		{
 			val: &Validator{
-				PubKey:  pubKey,
-				Address: nil,
+				PubKey:    pubKey,
+				BlsPubKey: blsPubKey,
+				Address:   nil,
 			},
 			err: true,
 			msg: "validator address is the wrong size: ",
 		},
 		{
 			val: &Validator{
-				PubKey:  pubKey,
-				Address: []byte{'a'},
+				PubKey:    pubKey,
+				BlsPubKey: blsPubKey,
+				Address:   []byte{'a'},
 			},
 			err: true,
 			msg: "validator address is the wrong size: 61",

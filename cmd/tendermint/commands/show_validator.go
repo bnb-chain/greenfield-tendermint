@@ -24,8 +24,15 @@ func showValidator(cmd *cobra.Command, args []string) error {
 	if !tmos.FileExists(keyFilePath) {
 		return fmt.Errorf("private validator file %s does not exist", keyFilePath)
 	}
-
-	pv := privval.LoadFilePV(keyFilePath, config.PrivValidatorStateFile())
+	blsKeyFilePath := config.PrivValidatorBlsKeyFile()
+	if !tmos.FileExists(blsKeyFilePath) {
+		return fmt.Errorf("private validator file %s does not exist", blsKeyFilePath)
+	}
+	relayerFilePath := config.PrivValidatorRelayerFile()
+	if !tmos.FileExists(relayerFilePath) {
+		return fmt.Errorf("private validator file %s does not exist", relayerFilePath)
+	}
+	pv := privval.LoadFilePV(keyFilePath, blsKeyFilePath, config.PrivValidatorStateFile(), relayerFilePath)
 
 	pubKey, err := pv.GetPubKey()
 	if err != nil {

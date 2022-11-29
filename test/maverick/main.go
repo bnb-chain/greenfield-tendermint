@@ -174,16 +174,22 @@ func initFiles(cmd *cobra.Command, args []string) error {
 func initFilesWithConfig(config *cfg.Config) error {
 	// private validator
 	privValKeyFile := config.PrivValidatorKeyFile()
+	privValBlsKeyFile := config.PrivValidatorBlsKeyFile()
+	privValRelayerFile := config.PrivValidatorRelayerFile()
 	privValStateFile := config.PrivValidatorStateFile()
 	var pv *nd.FilePV
 	if tmos.FileExists(privValKeyFile) {
-		pv = nd.LoadFilePV(privValKeyFile, privValStateFile)
+		pv = nd.LoadFilePV(privValKeyFile, privValBlsKeyFile, privValStateFile, privValRelayerFile)
 		logger.Info("Found private validator", "keyFile", privValKeyFile,
+			"blsKeyFile", privValBlsKeyFile,
+			"relayerFile", privValRelayerFile,
 			"stateFile", privValStateFile)
 	} else {
-		pv = nd.GenFilePV(privValKeyFile, privValStateFile)
+		pv = nd.GenFilePV(privValKeyFile, privValBlsKeyFile, privValStateFile, privValRelayerFile)
 		pv.Save()
 		logger.Info("Generated private validator", "keyFile", privValKeyFile,
+			"blsKeyFile", privValBlsKeyFile,
+			"relayerFile", privValRelayerFile,
 			"stateFile", privValStateFile)
 	}
 

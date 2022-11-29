@@ -421,7 +421,8 @@ func TestNodeNewNodeCustomReactors(t *testing.T) {
 	require.NoError(t, err)
 
 	n, err := NewNode(config,
-		privval.LoadOrGenFilePV(config.PrivValidatorKeyFile(), config.PrivValidatorStateFile()),
+		privval.LoadOrGenFilePV(config.PrivValidatorKeyFile(), config.PrivValidatorBlsKeyFile(),
+			config.PrivValidatorStateFile(), config.PrivValidatorRelayerFile()),
 		nodeKey,
 		proxy.DefaultClientCreator(config.ProxyApp, config.ABCI, config.DBDir()),
 		DefaultGenesisDocProviderFunc(config),
@@ -454,10 +455,11 @@ func state(nVals int, height int64) (sm.State, dbm.DB, []types.PrivValidator) {
 		privVal := types.NewMockPV()
 		privVals[i] = privVal
 		vals[i] = types.GenesisValidator{
-			Address: privVal.PrivKey.PubKey().Address(),
-			PubKey:  privVal.PrivKey.PubKey(),
-			Power:   1000,
-			Name:    fmt.Sprintf("test%d", i),
+			Address:   privVal.PrivKey.PubKey().Address(),
+			PubKey:    privVal.PrivKey.PubKey(),
+			BlsPubKey: privVal.BlsPrivKey.PubKey(),
+			Power:     1000,
+			Name:      fmt.Sprintf("test%d", i),
 		}
 	}
 	s, _ := sm.MakeGenesisState(&types.GenesisDoc{

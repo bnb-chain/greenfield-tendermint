@@ -42,7 +42,7 @@ func newEvidence(t *testing.T, val *privval.FilePV,
 	vote2.Signature, err = val.Key.PrivKey.Sign(types.VoteSignBytes(chainID, v2))
 	require.NoError(t, err)
 
-	validator := types.NewValidator(val.Key.PubKey, 10)
+	validator := types.NewValidator(val.Key.PubKey, val.BlsKey.PubKey, 10, val.Relayer.Address)
 	valSet := types.NewValidatorSet([]*types.Validator{validator})
 
 	return types.NewDuplicateVoteEvidence(vote, vote2, defaultTestTime, valSet)
@@ -116,9 +116,10 @@ func TestBroadcastEvidence_DuplicateVoteEvidence(t *testing.T) {
 	var (
 		config  = rpctest.GetConfig()
 		chainID = config.ChainID()
-		pv      = privval.LoadOrGenFilePV(config.PrivValidatorKeyFile(), config.PrivValidatorStateFile())
+		pv      = privval.LoadOrGenFilePV(config.PrivValidatorKeyFile(), config.PrivValidatorBlsKeyFile(),
+			config.PrivValidatorStateFile(), config.PrivValidatorRelayerFile())
 	)
-
+	time.Sleep(1 * time.Second)
 	for i, c := range GetClients() {
 		correct, fakes := makeEvidences(t, pv, chainID)
 		t.Logf("client %d", i)
