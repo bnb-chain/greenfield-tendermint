@@ -146,14 +146,12 @@ func (voteR *Reactor) broadcastVotes(peer p2p.Peer, ch chan *Vote) {
 func (voteR *Reactor) subscribeVotes() {
 	ch := voteR.votePool.SubscribeVotes()
 	for {
-		select {
-		case vote := <-ch:
-			voteR.mtx.RLock()
-			//TODO: stop sending vote to the peer who gives us the vote
-			for _, subCh := range voteR.chs {
-				go func() { subCh <- vote }()
-			}
-			voteR.mtx.RUnlock()
+		vote := <-ch
+		voteR.mtx.RLock()
+		//TODO: stop sending vote to the peer who gives us the vote
+		for _, subCh := range voteR.chs {
+			go func(ch chan *Vote) { ch <- vote }(subCh)
 		}
+		voteR.mtx.RUnlock()
 	}
 }

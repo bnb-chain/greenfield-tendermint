@@ -26,6 +26,7 @@ type Pool interface {
 	SubscribeVotes() <-chan *Vote
 }
 
+// TODO: prune votes
 // singlePool stores one kind of votes.
 type singlePool struct {
 	eventType EventType                   // event type

@@ -21,10 +21,9 @@ func (m mockStoreDB) LoadFromDBOrGenesisDoc(doc *types.GenesisDoc) (sm.State, er
 }
 
 func (m mockStoreDB) Load() (sm.State, error) {
-	s := sm.State{}
-	s.Validators = types.NewValidatorSet(m.validators)
-	m.state = s
-	return s, nil
+	m.state = sm.State{}
+	m.state.Validators = types.NewValidatorSet(m.validators)
+	return m.state, nil
 }
 
 func (m mockStoreDB) LoadValidators(i int64) (*types.ValidatorSet, error) {

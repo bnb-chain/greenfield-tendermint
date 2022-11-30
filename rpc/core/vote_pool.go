@@ -12,7 +12,7 @@ func BroadcastVote(ctx *rpctypes.Context, vote votepool.Vote) (*ctypes.ResultBro
 }
 
 func QueryVote(ctx *rpctypes.Context, eventType int, eventHash string) (*ctypes.ResultQueryVote, error) {
-	votes := make([]*votepool.Vote, 0)
+	var votes []*votepool.Vote
 	var err error
 	if eventHash == "" {
 		votes, err = env.VotePool.GetVotesByEventType(votepool.EventType(eventType))
