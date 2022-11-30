@@ -14,6 +14,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/rs/cors"
+	"github.com/tendermint/tendermint/votepool"
 	dbm "github.com/tendermint/tm-db"
 
 	abci "github.com/tendermint/tendermint/abci/types"
@@ -216,6 +217,8 @@ type Node struct {
 	bcReactor         p2p.Reactor       // for fast-syncing
 	mempoolReactor    p2p.Reactor       // for gossipping transactions
 	mempool           mempl.Mempool
+	votePoolReactor   p2p.Reactor // for gossipping transactions
+	votePool          votepool.Pool
 	stateSync         bool                    // whether the node should state sync on startup
 	stateSyncReactor  *statesync.Reactor      // for hosting and restoring state sync snapshots
 	stateSyncProvider statesync.StateProvider // provides state data for bootstrapping a node
@@ -495,6 +498,22 @@ func createConsensusReactor(config *cfg.Config,
 	return consensusReactor, consensusState
 }
 
+func createVotePoolReactor(config *cfg.Config, stateDB dbm.DB, logger log.Logger,
+) (*votepool.Reactor, votepool.Pool, error) {
+	votePool, err := votepool.NewMultiVotePool(sm.NewStore(stateDB, sm.StoreOptions{
+		DiscardABCIResponses: config.Storage.DiscardABCIResponses,
+	}))
+
+	if err != nil {
+		return nil, nil, err
+	}
+
+	votePoolReactor := votepool.NewReactor(votePool)
+	votePoolLogger := logger.With("module", "votepool")
+	votePoolReactor.SetLogger(votePoolLogger)
+	return votePoolReactor, votePool, nil
+}
+
 func createTransport(
 	config *cfg.Config,
 	nodeInfo p2p.NodeInfo,
@@ -573,6 +592,7 @@ func createSwitch(config *cfg.Config,
 	stateSyncReactor *statesync.Reactor,
 	consensusReactor *cs.Reactor,
 	evidenceReactor *evidence.Reactor,
+	votePoolReactor *votepool.Reactor,
 	nodeInfo p2p.NodeInfo,
 	nodeKey *p2p.NodeKey,
 	p2pLogger log.Logger,
@@ -589,6 +609,7 @@ func createSwitch(config *cfg.Config,
 	sw.AddReactor("CONSENSUS", consensusReactor)
 	sw.AddReactor("EVIDENCE", evidenceReactor)
 	sw.AddReactor("STATESYNC", stateSyncReactor)
+	sw.AddReactor("VOTEPOOL", votePoolReactor)
 
 	sw.SetNodeInfo(nodeInfo)
 	sw.SetNodeKey(nodeKey)
@@ -844,6 +865,12 @@ func NewNode(config *cfg.Config,
 	)
 	stateSyncReactor.SetLogger(logger.With("module", "statesync"))
 
+	// Make vote pool reactor
+	votePoolReactor, votePool, err := createVotePoolReactor(config, stateDB, logger)
+	if err != nil {
+		return nil, err
+	}
+
 	nodeInfo, err := makeNodeInfo(config, nodeKey, txIndexer, genDoc, state)
 	if err != nil {
 		return nil, err
@@ -856,7 +883,7 @@ func NewNode(config *cfg.Config,
 	p2pLogger := logger.With("module", "p2p")
 	sw := createSwitch(
 		config, transport, p2pMetrics, peerFilters, mempoolReactor, bcReactor,
-		stateSyncReactor, consensusReactor, evidenceReactor, nodeInfo, nodeKey, p2pLogger,
+		stateSyncReactor, consensusReactor, evidenceReactor, votePoolReactor, nodeInfo, nodeKey, p2pLogger,
 	)
 
 	err = sw.AddPersistentPeers(splitAndTrimEmpty(config.P2P.PersistentPeers, ",", " "))
@@ -915,6 +942,8 @@ func NewNode(config *cfg.Config,
 		bcReactor:        bcReactor,
 		mempoolReactor:   mempoolReactor,
 		mempool:          mempool,
+		votePoolReactor:  votePoolReactor,
+		votePool:         votePool,
 		consensusState:   consensusState,
 		consensusReactor: consensusReactor,
 		stateSyncReactor: stateSyncReactor,
@@ -1084,6 +1113,7 @@ func (n *Node) ConfigureRPC() error {
 		ConsensusReactor: n.consensusReactor,
 		EventBus:         n.eventBus,
 		Mempool:          n.mempool,
+		VotePool:         n.votePool,
 
 		Logger: n.Logger.With("module", "rpc"),
 
@@ -1358,6 +1388,7 @@ func makeNodeInfo(
 			mempl.MempoolChannel,
 			evidence.EvidenceChannel,
 			statesync.SnapshotChannel, statesync.ChunkChannel,
+			votepool.VotePoolChannel,
 		},
 		Moniker: config.Moniker,
 		Other: p2p.DefaultNodeInfoOther{

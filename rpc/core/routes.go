@@ -46,6 +46,11 @@ var Routes = map[string]*rpc.RPCFunc{
 
 	// evidence API
 	"broadcast_evidence": rpc.NewRPCFunc(BroadcastEvidence, "evidence"),
+
+	// vote pool API
+	"broadcast_vote": rpc.NewRPCFunc(BroadcastVote, "vote"),
+	"query_vote":     rpc.NewRPCFunc(QueryVote, "event_type,event_hash"),
+	"flush_vote":     rpc.NewRPCFunc(FlushVote, ""),
 }
 
 // AddUnsafeRoutes adds unsafe routes.

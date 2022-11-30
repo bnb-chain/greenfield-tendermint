@@ -853,7 +853,7 @@ func (m *Validator) Unmarshal(dAtA []byte) error {
 			iNdEx = postIndex
 		case 6:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field PrivValidatorRelayer", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field Relayer", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -1026,7 +1026,7 @@ func (m *SimpleValidator) Unmarshal(dAtA []byte) error {
 			iNdEx = postIndex
 		case 4:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field PrivValidatorRelayer", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field Relayer", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {

@@ -150,11 +150,21 @@ func testnetFiles(cmd *cobra.Command, args []string) error {
 		if err != nil {
 			return fmt.Errorf("can't get pubkey: %w", err)
 		}
+		blsPubKey, err := pv.GetBlsPubKey()
+		if err != nil {
+			return fmt.Errorf("can't get bls pubkey: %w", err)
+		}
+		relayer, err := pv.GetRelayer()
+		if err != nil {
+			return fmt.Errorf("can't get relayer: %w", err)
+		}
 		genVals[i] = types.GenesisValidator{
-			Address: pubKey.Address(),
-			PubKey:  pubKey,
-			Power:   1,
-			Name:    nodeDirName,
+			Address:   pubKey.Address(),
+			PubKey:    pubKey,
+			BlsPubKey: blsPubKey,
+			Relayer:   relayer,
+			Power:     1,
+			Name:      nodeDirName,
 		}
 	}
 
