@@ -217,10 +217,20 @@ func initFilesWithConfig(config *cfg.Config) error {
 		if err != nil {
 			return fmt.Errorf("can't get pubkey: %w", err)
 		}
+		pubBlsKey, err := pv.GetBlsPubKey()
+		if err != nil {
+			return fmt.Errorf("can't get bls pubkey: %w", err)
+		}
+		relayer, err := pv.GetRelayer()
+		if err != nil {
+			return fmt.Errorf("can't get relayer: %w", err)
+		}
 		genDoc.Validators = []types.GenesisValidator{{
-			Address: pubKey.Address(),
-			PubKey:  pubKey,
-			Power:   10,
+			Address:   pubKey.Address(),
+			PubKey:    pubKey,
+			BlsPubKey: pubBlsKey,
+			Relayer:   relayer,
+			Power:     10,
 		}}
 
 		if err := genDoc.SaveAs(genFile); err != nil {

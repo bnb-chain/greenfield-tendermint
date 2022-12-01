@@ -31,15 +31,16 @@ const (
 	AppAddressTCP  = "tcp://127.0.0.1:30000"
 	AppAddressUNIX = "unix:///var/run/app.sock"
 
-	PrivvalAddressTCP      = "tcp://0.0.0.0:27559"
-	PrivvalAddressUNIX     = "unix:///var/run/privval.sock"
-	PrivvalKeyFile         = "config/priv_validator_key.json"
-	PrivvalBlsKeyFile      = "config/priv_validator_bls_key.json"
-	PrivvalRelayerFile     = "config/priv_validator_relayer.json"
-	PrivvalStateFile       = "data/priv_validator_state.json"
-	PrivvalDummyKeyFile    = "config/dummy_validator_key.json"
-	PrivvalDummyBlsKeyFile = "config/dummy_validator_bls_key.json"
-	PrivvalDummyStateFile  = "data/dummy_validator_state.json"
+	PrivvalAddressTCP       = "tcp://0.0.0.0:27559"
+	PrivvalAddressUNIX      = "unix:///var/run/privval.sock"
+	PrivvalKeyFile          = "config/priv_validator_key.json"
+	PrivvalBlsKeyFile       = "config/priv_validator_bls_key.json"
+	PrivvalRelayerFile      = "config/priv_validator_relayer.json"
+	PrivvalStateFile        = "data/priv_validator_state.json"
+	PrivvalDummyKeyFile     = "config/dummy_validator_key.json"
+	PrivvalDummyBlsKeyFile  = "config/dummy_validator_bls_key.json"
+	PrivvalDummyRelayerFile = "config/dummy_validator_relayer.json"
+	PrivvalDummyStateFile   = "data/dummy_validator_state.json"
 )
 
 // Setup sets up the testnet configuration.
@@ -126,7 +127,7 @@ func Setup(testnet *e2e.Testnet, infp infra.Provider) error {
 			filepath.Join(nodeDir, PrivvalDummyKeyFile),
 			filepath.Join(nodeDir, PrivvalDummyBlsKeyFile),
 			filepath.Join(nodeDir, PrivvalDummyStateFile),
-			filepath.Join(nodeDir, PrivvalRelayerFile),
+			filepath.Join(nodeDir, PrivvalDummyRelayerFile),
 		)).Save()
 	}
 
@@ -145,10 +146,12 @@ func MakeGenesis(testnet *e2e.Testnet) (types.GenesisDoc, error) {
 	genesis.ConsensusParams.Version.AppVersion = 1
 	for validator, power := range testnet.Validators {
 		genesis.Validators = append(genesis.Validators, types.GenesisValidator{
-			Name:    validator.Name,
-			Address: validator.PrivvalKey.PubKey().Address(),
-			PubKey:  validator.PrivvalKey.PubKey(),
-			Power:   power,
+			Name:      validator.Name,
+			Address:   validator.PrivvalKey.PubKey().Address(),
+			PubKey:    validator.PrivvalKey.PubKey(),
+			BlsPubKey: validator.PrivvalBlsKey.PubKey(),
+			Relayer:   validator.Relayer,
+			Power:     power,
 		})
 	}
 	// The validator set will be sorted internally by Tendermint ranked by power,
@@ -199,6 +202,8 @@ func MakeConfig(node *e2e.Node) (*config.Config, error) {
 	// the file privval.
 	cfg.PrivValidatorListenAddr = ""
 	cfg.PrivValidatorKey = PrivvalDummyKeyFile
+	cfg.PrivValidatorBlsKey = PrivvalDummyBlsKeyFile
+	cfg.PrivValidatorRelayer = PrivvalDummyRelayerFile
 	cfg.PrivValidatorState = PrivvalDummyStateFile
 
 	switch node.Mode {
@@ -206,6 +211,8 @@ func MakeConfig(node *e2e.Node) (*config.Config, error) {
 		switch node.PrivvalProtocol {
 		case e2e.ProtocolFile:
 			cfg.PrivValidatorKey = PrivvalKeyFile
+			cfg.PrivValidatorBlsKey = PrivvalBlsKeyFile
+			cfg.PrivValidatorRelayer = PrivvalRelayerFile
 			cfg.PrivValidatorState = PrivvalStateFile
 		case e2e.ProtocolUNIX:
 			cfg.PrivValidatorListenAddr = PrivvalAddressUNIX
@@ -297,10 +304,14 @@ func MakeAppConfig(node *e2e.Node) ([]byte, error) {
 		case e2e.ProtocolTCP:
 			cfg["privval_server"] = PrivvalAddressTCP
 			cfg["privval_key"] = PrivvalKeyFile
+			cfg["privval_bls_key"] = PrivvalBlsKeyFile
+			cfg["privval_relayer"] = PrivvalRelayerFile
 			cfg["privval_state"] = PrivvalStateFile
 		case e2e.ProtocolUNIX:
 			cfg["privval_server"] = PrivvalAddressUNIX
 			cfg["privval_key"] = PrivvalKeyFile
+			cfg["privval_bls_key"] = PrivvalBlsKeyFile
+			cfg["privval_relayer"] = PrivvalRelayerFile
 			cfg["privval_state"] = PrivvalStateFile
 		default:
 			return nil, fmt.Errorf("unexpected privval protocol setting %q", node.PrivvalProtocol)

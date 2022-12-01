@@ -12,6 +12,7 @@ import (
 	"strings"
 
 	"github.com/tendermint/tendermint/crypto"
+	"github.com/tendermint/tendermint/crypto/bls12381"
 	"github.com/tendermint/tendermint/crypto/ed25519"
 	"github.com/tendermint/tendermint/crypto/secp256k1"
 	rpchttp "github.com/tendermint/tendermint/rpc/client/http"
@@ -89,6 +90,9 @@ type Node struct {
 	Misbehaviors     map[int64]string
 }
 
+// TODO: fix validator issues
+var blsPrivKey = bls12381.GenPrivKey()
+
 // LoadTestnet loads a testnet from a manifest file, using the filename to
 // determine the testnet name and directory (from the basename of the file).
 // The testnet generation must be deterministic, since it is generated
@@ -143,6 +147,7 @@ func LoadTestnet(manifest Manifest, fname string, ifd InfrastructureData) (*Test
 			Testnet:          testnet,
 			PrivvalKey:       keyGen.Generate(manifest.KeyType),
 			NodeKey:          keyGen.Generate("ed25519"),
+			PrivvalBlsKey:    blsPrivKey,
 			IP:               ind.IPAddress,
 			ProxyPort:        proxyPortGen.Next(),
 			Mode:             ModeValidator,
@@ -230,6 +235,7 @@ func LoadTestnet(manifest Manifest, fname string, ifd InfrastructureData) (*Test
 			if validator == nil {
 				return nil, fmt.Errorf("unknown validator %q", validatorName)
 			}
+			validator.PrivvalBlsKey = blsPrivKey
 			testnet.Validators[validator] = power
 		}
 	} else {

@@ -345,6 +345,8 @@ func (pv *FilePV) SignProposal(chainID string, proposal *tmproto.Proposal) error
 // Save persists the FilePV to disk.
 func (pv *FilePV) Save() {
 	pv.Key.Save()
+	pv.BlsKey.Save()
+	pv.Relayer.Save()
 	pv.LastSignState.Save()
 }
 
