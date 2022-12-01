@@ -2,6 +2,7 @@ package votepool
 
 import (
 	"errors"
+	"time"
 
 	"github.com/tendermint/tendermint/libs/sync"
 	sm "github.com/tendermint/tendermint/state"
@@ -26,44 +27,55 @@ type Pool interface {
 	SubscribeVotes() <-chan *Vote
 }
 
-// TODO: prune votes
+const PruneVoteInterval = 5 * time.Second
+
 // singlePool stores one kind of votes.
 type singlePool struct {
 	eventType EventType                   // event type
 	mtx       *sync.RWMutex               // mutex to protect voteMap
 	voteMap   map[string]map[string]*Vote // map: eventHash -> pubKey -> Vote
 	ch        chan *Vote                  // channel for subscription
+
+	queue  *VoteQueue // priority to prune votes
+	ticker *time.Ticker
 }
 
 // newSinglePool creates a basic vote pool.
 func newSinglePool(eventType EventType, ch chan *Vote) *singlePool {
-	return &singlePool{
+	ticker := time.NewTicker(PruneVoteInterval)
+
+	p := &singlePool{
 		eventType: eventType,
 		mtx:       &sync.RWMutex{},
 		voteMap:   make(map[string]map[string]*Vote),
 		ch:        ch,
+		queue:     NewVoteQueue(),
+		ticker:    ticker,
 	}
+	go p.prune()
+	return p
 }
 
 // AddVote implements Pool.
 // Be noted: no validation is conducted in this layer.
 func (s *singlePool) AddVote(vote *Vote) error {
-
 	s.mtx.Lock()
 	defer s.mtx.Unlock()
 
 	subM, ok := s.voteMap[vote.EventHash]
 	if ok {
-		if _, ok := subM[string(vote.PubKey)]; ok {
+		if _, ok := subM[string(vote.PubKey[:])]; ok {
 			return errors.New("vote already exists")
 		}
-		subM[string(vote.PubKey)] = vote
+		subM[string(vote.PubKey[:])] = vote
+		s.queue.Insert(vote)
 		return nil
 	}
 
 	subM = make(map[string]*Vote)
-	subM[string(vote.PubKey)] = vote
+	subM[string(vote.PubKey[:])] = vote
 	s.voteMap[vote.EventHash] = subM
+	s.queue.Insert(vote)
 	go func() {
 		s.ch <- vote
 	}()
@@ -106,8 +118,8 @@ func (s *singlePool) GetVotesByEventType(eventType EventType) ([]*Vote, error) {
 
 // FlushVotes implements Pool.
 func (s *singlePool) FlushVotes() {
-	s.mtx.RLock()
-	defer s.mtx.RUnlock()
+	s.mtx.Lock()
+	defer s.mtx.Unlock()
 
 	s.voteMap = make(map[string]map[string]*Vote)
 }
@@ -117,18 +129,34 @@ func (s *singlePool) SubscribeVotes() <-chan *Vote {
 	return s.ch
 }
 
-// MultiPool provides a vote pool to store different kinds of vote.
+// prune will prune votes at the given intervals.
+func (s *singlePool) prune() {
+	for range s.ticker.C {
+		current := &Vote{expireAt: time.Now()}
+		s.mtx.Lock()
+		expires, err := s.queue.PopUntil(current)
+		if err == nil {
+			for _, expire := range expires {
+				delete(s.voteMap[expire.EventHash], string(expire.PubKey[:]))
+			}
+
+		}
+		s.mtx.Unlock()
+	}
+}
+
+// pool provides a vote pool to store different kinds of vote.
 // Meanwhile, it will check the source signer of the votes, currently only votes from validators will be saved.
-type MultiPool struct {
-	singleVps map[EventType]*singlePool
-	ch        chan *Vote
-	verifiers []Verifier
+type pool struct {
+	singlePools map[EventType]*singlePool
+	ch          chan *Vote
+	verifiers   []Verifier
 }
 
 // NewMultiVotePool creates a Pool for usage, which is only used for cross chain votes currently.
 func NewMultiVotePool(stateDB sm.Store) (Pool, error) {
 	eventTypes := make([]EventType, 0)
-	eventTypes = append(eventTypes, CrossChainEvent)
+	eventTypes = append(eventTypes, ToBscCrossChainEvent, FromBscCrossChainEvent)
 
 	ch := make(chan *Vote)
 	m := make(map[EventType]*singlePool, len(eventTypes))
@@ -136,10 +164,10 @@ func NewMultiVotePool(stateDB sm.Store) (Pool, error) {
 		singleVp := newSinglePool(et, ch)
 		m[et] = singleVp
 	}
-	votePool := &MultiPool{
-		singleVps: m,
-		ch:        ch,
-		verifiers: make([]Verifier, 0),
+	votePool := &pool{
+		singlePools: m,
+		ch:          ch,
+		verifiers:   make([]Verifier, 0),
 	}
 
 	blsVerifier := &BlsSignatureVerifier{}
@@ -154,12 +182,12 @@ func NewMultiVotePool(stateDB sm.Store) (Pool, error) {
 }
 
 // AddVote implements Pool.
-func (m *MultiPool) AddVote(vote *Vote) error {
+func (m *pool) AddVote(vote *Vote) error {
 	err := vote.ValidateBasic()
 	if err != nil {
 		return err
 	}
-	singleVotePool, ok := m.singleVps[vote.EvenType]
+	singleVotePool, ok := m.singlePools[vote.EvenType]
 	if !ok {
 		return errors.New("unsupported event type")
 	}
@@ -174,8 +202,8 @@ func (m *MultiPool) AddVote(vote *Vote) error {
 }
 
 // GetVotesByEventHash implements Pool.
-func (m *MultiPool) GetVotesByEventHash(eventType EventType, eventHash string) ([]*Vote, error) {
-	singleVotePool, ok := m.singleVps[eventType]
+func (m *pool) GetVotesByEventHash(eventType EventType, eventHash string) ([]*Vote, error) {
+	singleVotePool, ok := m.singlePools[eventType]
 	if !ok {
 		return nil, errors.New("unsupported event type")
 	}
@@ -183,8 +211,8 @@ func (m *MultiPool) GetVotesByEventHash(eventType EventType, eventHash string) (
 }
 
 // GetVotesByEventType implements Pool.
-func (m *MultiPool) GetVotesByEventType(eventType EventType) ([]*Vote, error) {
-	singleVotePool, ok := m.singleVps[eventType]
+func (m *pool) GetVotesByEventType(eventType EventType) ([]*Vote, error) {
+	singleVotePool, ok := m.singlePools[eventType]
 	if !ok {
 		return nil, errors.New("unsupported event type")
 	}
@@ -192,23 +220,23 @@ func (m *MultiPool) GetVotesByEventType(eventType EventType) ([]*Vote, error) {
 }
 
 // FlushVotes implements Pool.
-func (m *MultiPool) FlushVotes() {
-	for _, singleVotePool := range m.singleVps {
+func (m *pool) FlushVotes() {
+	for _, singleVotePool := range m.singlePools {
 		singleVotePool.FlushVotes()
 	}
 }
 
 // SubscribeVotes implements Pool.
-func (m *MultiPool) SubscribeVotes() <-chan *Vote {
+func (m *pool) SubscribeVotes() <-chan *Vote {
 	return m.ch
 }
 
 // AddVerifier will append a Vote verifier.
-func (m *MultiPool) AddVerifier(v Verifier) {
+func (m *pool) AddVerifier(v Verifier) {
 	m.verifiers = append(m.verifiers, v)
 }
 
 // ClearVerifier will clear all verifiers for the Pool.
-func (m *MultiPool) ClearVerifier() {
+func (m *pool) ClearVerifier() {
 	m.verifiers = make([]Verifier, 0)
 }

@@ -28,6 +28,10 @@ func NewVote(pubKey, signature []byte, eventType uint8, eventHash string) *Vote 
 	return &vote
 }
 
+func (v *Vote) Key() string {
+	return v.EventHash + string(v.PubKey[:])
+}
+
 func (v *Vote) ValidateBasic() error {
 	//TODO: verify exact lengths
 	if len(v.PubKey) == 0 {
