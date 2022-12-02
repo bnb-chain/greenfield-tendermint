@@ -135,7 +135,10 @@ func (pb2tm) ValidatorUpdates(vals []abci.ValidatorUpdate) ([]*Validator, error)
 		if err != nil {
 			return nil, err
 		}
-		tmVals[i] = NewValidator(pub, v.Power)
+		updated := NewValidator(pub, v.Power)
+		updated.SetBlsPubKey(v.BlsPukKey)
+		updated.SetRelayer(v.Relayer)
+		tmVals[i] = updated
 	}
 	return tmVals, nil
 }
