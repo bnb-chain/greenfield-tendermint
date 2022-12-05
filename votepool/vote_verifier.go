@@ -3,9 +3,9 @@ package votepool
 import (
 	"errors"
 
-	"github.com/ethereum/go-ethereum/common"
 	"github.com/prysmaticlabs/prysm/crypto/bls/blst"
 	blsCommon "github.com/prysmaticlabs/prysm/crypto/bls/common"
+
 	"github.com/tendermint/tendermint/libs/sync"
 	"github.com/tendermint/tendermint/types"
 )
@@ -39,7 +39,7 @@ func (f *FromValidatorVerifier) initValidators(validators []*types.Validator) {
 
 func (f *FromValidatorVerifier) updateValidators(changes []*types.Validator) {
 	f.mtx.Lock()
-	f.mtx.Unlock()
+	defer f.mtx.Unlock()
 
 	vals := make([]*types.Validator, 0)
 	for k, val := range f.validators {
@@ -47,11 +47,10 @@ func (f *FromValidatorVerifier) updateValidators(changes []*types.Validator) {
 		delete(f.validators, k)
 	}
 	valSet := &types.ValidatorSet{Validators: vals}
-	if err := valSet.UpdateWithChangeSet(changes); err != nil {
-		for _, val := range valSet.Validators {
-			if len(val.BlsPubKey) > 0 {
-				f.validators[string(val.BlsPubKey[:])] = val
-			}
+	_ = valSet.UpdateWithChangeSet(changes) // use valSet's validators even if there are errors
+	for _, val := range valSet.Validators {
+		if len(val.BlsPubKey) > 0 {
+			f.validators[string(val.BlsPubKey[:])] = val
 		}
 	}
 }
@@ -73,8 +72,7 @@ type BlsSignatureVerifier struct {
 
 // Validate implements Verifier.
 func (b *BlsSignatureVerifier) Validate(vote Vote) error {
-	hash := common.HexToHash(vote.EventHash)
-	valid := verifySignature(hash.Bytes(), vote.PubKey, vote.Signature)
+	valid := verifySignature(vote.EventHash, vote.PubKey, vote.Signature)
 	if !valid {
 		return errors.New("invalid signature")
 	}
@@ -94,7 +92,7 @@ func verifySignature(msg []byte, pubKey, sig []byte) bool {
 	pubKeys[0] = blsPubKey
 
 	valid, err := blst.VerifyMultipleSignatures(sigs, msgs, pubKeys)
-	if err != nil {
+	if !valid || err != nil {
 		return false
 	}
 	return valid

@@ -7,6 +7,7 @@ import (
 	"time"
 
 	lru "github.com/hashicorp/golang-lru"
+
 	"github.com/tendermint/tendermint/libs/service"
 	"github.com/tendermint/tendermint/libs/sync"
 	sm "github.com/tendermint/tendermint/state"
@@ -38,7 +39,7 @@ type Pool interface {
 	AddVote(vote *Vote) error
 
 	// GetVotesByEventHash will filter votes by event hash and event type.
-	GetVotesByEventHash(eventType EventType, eventHash string) ([]*Vote, error)
+	GetVotesByEventHash(eventType EventType, eventHash []byte) ([]*Vote, error)
 
 	// GetVotesByEventType will filter votes by event type.
 	GetVotesByEventType(eventType EventType) ([]*Vote, error)
@@ -74,7 +75,7 @@ func (s *voteStore) addVote(vote *Vote) error {
 	s.mtx.Lock()
 	defer s.mtx.Unlock()
 
-	subM, ok := s.voteMap[vote.EventHash]
+	subM, ok := s.voteMap[string(vote.EventHash[:])]
 	if ok {
 		if _, ok := subM[string(vote.PubKey[:])]; ok {
 			return nil
@@ -86,12 +87,12 @@ func (s *voteStore) addVote(vote *Vote) error {
 
 	subM = make(map[string]*Vote)
 	subM[string(vote.PubKey[:])] = vote
-	s.voteMap[vote.EventHash] = subM
+	s.voteMap[string(vote.EventHash[:])] = subM
 	s.queue.Insert(vote)
 	return nil
 }
 
-func (s *voteStore) getVotesByEventHash(eventType EventType, eventHash string) ([]*Vote, error) {
+func (s *voteStore) getVotesByEventHash(eventType EventType, eventHash []byte) ([]*Vote, error) {
 	if eventType != s.eventType {
 		return nil, errors.New("invalid event type")
 	}
@@ -99,7 +100,7 @@ func (s *voteStore) getVotesByEventHash(eventType EventType, eventHash string) (
 	defer s.mtx.RUnlock()
 
 	votes := make([]*Vote, 0)
-	if subM, ok := s.voteMap[eventHash]; ok {
+	if subM, ok := s.voteMap[string(eventHash[:])]; ok {
 		for _, v := range subM {
 			votes = append(votes, v)
 		}
@@ -140,7 +141,7 @@ func (s *voteStore) pruneVotes() []string {
 	if err == nil {
 		for _, expire := range expires {
 			keys = append(keys, expire.Key())
-			delete(s.voteMap[expire.EventHash], string(expire.PubKey[:]))
+			delete(s.voteMap[string(expire.EventHash[:])], string(expire.PubKey[:]))
 		}
 	}
 	return keys
@@ -163,7 +164,7 @@ type pool struct {
 }
 
 // NewVotePool creates a Pool for usage, which is only used for cross chain votes currently.
-func NewVotePool(stateDB sm.Store, eventBus *types.EventBus) (Pool, error) {
+func NewVotePool(stateDB sm.Store, eventBus *types.EventBus) (*pool, error) {
 	// get the initial validators
 	state, err := stateDB.Load()
 	if err != nil {
@@ -192,7 +193,7 @@ func NewVotePool(stateDB sm.Store, eventBus *types.EventBus) (Pool, error) {
 		cache:             cache,
 		eventBus:          eventBus,
 		blsVerifier:       &BlsSignatureVerifier{},
-		validatorVerifier: NewFromValidatorVerifier(),
+		validatorVerifier: validatorVerifier,
 	}
 	go votePool.validatorUpdateRoutine()
 	go votePool.pruneRoutine()
@@ -214,12 +215,12 @@ func (p *pool) AddVote(vote *Vote) error {
 		return nil
 	}
 
-	//if err := p.validatorVerifier.Validate(*vote); err != nil {
-	//	return err
-	//}
-	//if err := p.blsVerifier.Validate(*vote); err != nil {
-	//	return err
-	//}
+	if err := p.validatorVerifier.Validate(*vote); err != nil {
+		return err
+	}
+	if err := p.blsVerifier.Validate(*vote); err != nil {
+		return err
+	}
 
 	vote.expireAt = time.Now().Add(voteKeepAliveAfter)
 	err = store.addVote(vote)
@@ -235,7 +236,7 @@ func (p *pool) AddVote(vote *Vote) error {
 }
 
 // GetVotesByEventHash implements Pool.
-func (p *pool) GetVotesByEventHash(eventType EventType, eventHash string) ([]*Vote, error) {
+func (p *pool) GetVotesByEventHash(eventType EventType, eventHash []byte) ([]*Vote, error) {
 	store, ok := p.stores[eventType]
 	if !ok {
 		return nil, errors.New("unsupported event type")
@@ -262,17 +263,15 @@ func (p *pool) FlushVotes() {
 
 // validatorUpdateRoutine will sync validator updates.
 func (p *pool) validatorUpdateRoutine() {
-	sub, err := p.eventBus.Subscribe(context.Background(), "VotePoolService",
-		types.EventQueryValidatorSetUpdates, eventBusSubscribeCap)
+	sub, err := p.eventBus.Subscribe(context.Background(), "VotePoolService", types.EventQueryValidatorSetUpdates, eventBusSubscribeCap)
 	if err != nil {
 		panic(err)
 	}
 	for {
 		select {
 		case validatorData := <-sub.Out():
-			changes := validatorData.Data().([]*types.Validator)
-			p.validatorVerifier.updateValidators(changes)
-			p.Logger.Info("Validator set updates received", "changes", changes)
+			changes := validatorData.Data().(types.EventDataValidatorSetUpdates)
+			p.validatorVerifier.updateValidators(changes.ValidatorUpdates)
 		case <-sub.Cancelled():
 			return
 		}

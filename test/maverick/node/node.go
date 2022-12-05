@@ -15,6 +15,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/rs/cors"
+
 	"github.com/tendermint/tendermint/votepool"
 
 	dbm "github.com/tendermint/tm-db"

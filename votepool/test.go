@@ -13,11 +13,11 @@ type mockStoreDB struct {
 }
 
 func (m mockStoreDB) LoadFromDBOrGenesisFile(s string) (sm.State, error) {
-	panic("implement me")
+	panic("the method is useless in the testing context")
 }
 
 func (m mockStoreDB) LoadFromDBOrGenesisDoc(doc *types.GenesisDoc) (sm.State, error) {
-	panic("implement me")
+	panic("the method is useless in the testing context")
 }
 
 func (m mockStoreDB) Load() (sm.State, error) {
@@ -31,33 +31,33 @@ func (m mockStoreDB) LoadValidators(i int64) (*types.ValidatorSet, error) {
 }
 
 func (m mockStoreDB) LoadABCIResponses(i int64) (*tmstate.ABCIResponses, error) {
-	panic("implement me")
+	panic("the method is useless in the testing context")
 }
 
 func (m mockStoreDB) LoadLastABCIResponse(i int64) (*tmstate.ABCIResponses, error) {
-	panic("implement me")
+	panic("the method is useless in the testing context")
 }
 
 func (m mockStoreDB) LoadConsensusParams(i int64) (tmproto.ConsensusParams, error) {
-	panic("implement me")
+	panic("the method is useless in the testing context")
 }
 
 func (m mockStoreDB) Save(state sm.State) error {
-	panic("implement me")
+	panic("the method is useless in the testing context")
 }
 
 func (m mockStoreDB) SaveABCIResponses(i int64, responses *tmstate.ABCIResponses) error {
-	panic("implement me")
+	panic("the method is useless in the testing context")
 }
 
 func (m mockStoreDB) Bootstrap(state sm.State) error {
-	panic("implement me")
+	panic("the method is useless in the testing context")
 }
 
 func (m mockStoreDB) PruneStates(i int64, i2 int64) error {
-	panic("implement me")
+	panic("the method is useless in the testing context")
 }
 
 func (m mockStoreDB) Close() error {
-	panic("implement me")
+	panic("the method is useless in the testing context")
 }

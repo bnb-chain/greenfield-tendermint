@@ -4,6 +4,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/stretchr/testify/require"
 )
 
@@ -11,15 +12,15 @@ func makeVotes() (*Vote, *Vote, *Vote) {
 	now := time.Now()
 
 	vote1 := &Vote{
-		EventHash: "0xf7ded74d86f9cf164e6e1a1f2d5fb2429140bb6d701a39bd2c416d36c57100e5",
+		EventHash: common.HexToHash("0xf7ded74d86f9cf164e6e1a1f2d5fb2429140bb6d701a39bd2c416d36c57100e5").Bytes(),
 		expireAt:  now.Add(1 * time.Hour),
 	}
 	vote2 := &Vote{
-		EventHash: "0xd6ab0606cfd6b517656a9b60dc127069a2fc27146946a872d3e18c87164fe2ba",
+		EventHash: common.HexToHash("0xd6ab0606cfd6b517656a9b60dc127069a2fc27146946a872d3e18c87164fe2ba").Bytes(),
 		expireAt:  now.Add(-1 * time.Hour),
 	}
 	vote3 := &Vote{
-		EventHash: "0xb9947bea2b0c2dc936df248397638462769601e4d5c0b48975731b48c206507e",
+		EventHash: common.HexToHash("0xb9947bea2b0c2dc936df248397638462769601e4d5c0b48975731b48c206507e").Bytes(),
 		expireAt:  now.Add(2 * time.Hour),
 	}
 	return vote1, vote2, vote3
@@ -45,7 +46,7 @@ func TestVoteQueuePop(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, vote3.EventHash, pop.EventHash)
 
-	pop, err = q.Pop()
+	_, err = q.Pop()
 	require.Error(t, err)
 }
 

@@ -11,10 +11,10 @@ func BroadcastVote(ctx *rpctypes.Context, vote votepool.Vote) (*ctypes.ResultBro
 	return &ctypes.ResultBroadcastVote{}, err
 }
 
-func QueryVote(ctx *rpctypes.Context, eventType int, eventHash string) (*ctypes.ResultQueryVote, error) {
+func QueryVote(ctx *rpctypes.Context, eventType int, eventHash []byte) (*ctypes.ResultQueryVote, error) {
 	var votes []*votepool.Vote
 	var err error
-	if eventHash == "" {
+	if len(eventHash) == 0 {
 		votes, err = env.VotePool.GetVotesByEventType(votepool.EventType(eventType))
 	} else {
 		votes, err = env.VotePool.GetVotesByEventHash(votepool.EventType(eventType), eventHash)
