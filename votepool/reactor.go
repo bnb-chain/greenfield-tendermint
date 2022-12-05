@@ -17,7 +17,7 @@ import (
 )
 
 const (
-	// VotePoolChannel is the p2p channel used for sending and receiving votes in vote pool.
+	// VotePoolChannel is the p2p channel used for sending and receiving votes in vote Pool.
 	VotePoolChannel = byte(0x70)
 
 	// Max number of peers to connected to, when there are more peers, it will stop broadcasting votes to the new ones.
@@ -29,10 +29,10 @@ const (
 
 var eventVotePoolAdded = types.QueryForEvent(eventBusVotePoolUpdates)
 
-// Reactor will 1) subscribe votes from vote pool and 2) broadcast votes to peers.
+// Reactor will 1) subscribe votes from vote Pool and 2) broadcast votes to peers.
 type Reactor struct {
 	p2p.BaseReactor
-	votePool Pool
+	votePool VotePool
 
 	mtx     *sync.RWMutex         // for protection of chs
 	chs     map[p2p.ID]chan *Vote // for subscription
@@ -41,8 +41,8 @@ type Reactor struct {
 	eventBus *types.EventBus
 }
 
-// NewReactor returns a new Reactor with the given vote pool.
-func NewReactor(votePool Pool, eventBus *types.EventBus) *Reactor {
+// NewReactor returns a new Reactor with the given vote Pool.
+func NewReactor(votePool VotePool, eventBus *types.EventBus) *Reactor {
 	voteR := &Reactor{
 		votePool: votePool,
 		mtx:      &sync.RWMutex{},

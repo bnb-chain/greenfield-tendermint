@@ -10,7 +10,7 @@ type Vote struct {
 	PubKey    []byte    `json:"pub_key"`    //bls public key
 	Signature []byte    `json:"signature"`  //bls signature
 	EvenType  EventType `json:"event_type"` //event type of the vote
-	EventHash []byte    `json:"event_hash"` //the hash to sign, here []byte is used, so that vote pool will not care about the meaning of the data
+	EventHash []byte    `json:"event_hash"` //the hash to sign, here []byte is used, so that vote Pool will not care about the meaning of the data
 
 	expireAt time.Time
 }

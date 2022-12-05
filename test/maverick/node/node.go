@@ -246,7 +246,7 @@ type Node struct {
 	mempoolReactor    p2p.Reactor       // for gossipping transactions
 	mempool           mempl.Mempool
 	votePoolReactor   p2p.Reactor // for gossipping votes signed in bls schema
-	votePool          votepool.Pool
+	votePool          votepool.VotePool
 	stateSync         bool                    // whether the node should state sync on startup
 	stateSyncReactor  *statesync.Reactor      // for hosting and restoring state sync snapshots
 	stateSyncProvider statesync.StateProvider // provides state data for bootstrapping a node
@@ -517,10 +517,21 @@ func createVotePoolReactor(config *cfg.Config,
 	stateDB dbm.DB,
 	eventBus *types.EventBus,
 	logger log.Logger,
-) (*votepool.Reactor, votepool.Pool, error) {
-	votePool, err := votepool.NewVotePool(sm.NewStore(stateDB, sm.StoreOptions{
+) (*votepool.Reactor, votepool.VotePool, error) {
+	state, err := sm.NewStore(stateDB, sm.StoreOptions{
 		DiscardABCIResponses: config.Storage.DiscardABCIResponses,
-	}), eventBus)
+	}).Load()
+	if err != nil {
+		return nil, nil, err
+	}
+	vals := make([]*types.Validator, 0)
+	if state.Validators != nil {
+		for _, val := range state.Validators.Validators {
+			vals = append(vals, val.Copy())
+		}
+	}
+
+	votePool, err := votepool.NewVotePool(vals, eventBus)
 	if err != nil {
 		return nil, nil, err
 	}

@@ -15,7 +15,7 @@ import (
 	"github.com/tendermint/tendermint/types"
 )
 
-func makeVotePool() (blsCommon.SecretKey, *types.Validator, blsCommon.SecretKey, *types.Validator, *types.EventBus, *pool) {
+func makeVotePool() (blsCommon.SecretKey, *types.Validator, blsCommon.SecretKey, *types.Validator, *types.EventBus, *Pool) {
 	pubKey1 := ed25519.GenPrivKey().PubKey()
 	blsPrivKey1, _ := blst.RandKey()
 	blsPubKey1 := blsPrivKey1.PublicKey().Marshal()
@@ -30,13 +30,12 @@ func makeVotePool() (blsCommon.SecretKey, *types.Validator, blsCommon.SecretKey,
 		val1, val2,
 	}
 
-	mockStore := mockStoreDB{validators: vals}
 	eventBus := types.NewEventBus()
 	err := eventBus.Start()
 	if err != nil {
 		panic(err)
 	}
-	votePool, err := NewVotePool(mockStore, eventBus)
+	votePool, err := NewVotePool(vals, eventBus)
 	if err != nil {
 		panic(err)
 	}
@@ -247,7 +246,7 @@ func TestPool_ValidatorSetUpdate(t *testing.T) {
 	}
 
 	// resend the same validator updates should be fine
-	for len(votePool.validatorVerifier.validators) == 2 {
+	for votePool.validatorVerifier.lenOfValidators() == 2 {
 		err := eventBus.PublishEventValidatorSetUpdates(validatorUpdateEvents)
 		require.NoError(t, err)
 		time.Sleep(200 * time.Millisecond)
@@ -267,7 +266,7 @@ func TestPool_ValidatorSetUpdate(t *testing.T) {
 	}
 
 	// resend the same validator updates should be fine
-	for len(votePool.validatorVerifier.validators) == 1 {
+	for votePool.validatorVerifier.lenOfValidators() == 1 {
 		err = eventBus.PublishEventValidatorSetUpdates(validatorUpdateEvents)
 		require.NoError(t, err)
 		time.Sleep(200 * time.Millisecond)

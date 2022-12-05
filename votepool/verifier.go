@@ -55,6 +55,13 @@ func (f *FromValidatorVerifier) updateValidators(changes []*types.Validator) {
 	}
 }
 
+func (f *FromValidatorVerifier) lenOfValidators() int {
+	f.mtx.Lock()
+	defer f.mtx.Unlock()
+
+	return len(f.validators)
+}
+
 // Validate implements Verifier.
 func (f *FromValidatorVerifier) Validate(vote Vote) error {
 	f.mtx.RLock()

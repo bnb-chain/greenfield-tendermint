@@ -33,7 +33,7 @@ func votepoolLogger() log.Logger {
 	})
 }
 
-func makeAndConnectReactors(config *cfg.Config, n int) ([]blsCommon.SecretKey, []*types.Validator, []*types.EventBus, []Pool, []*Reactor) {
+func makeAndConnectReactors(config *cfg.Config, n int) ([]blsCommon.SecretKey, []*types.Validator, []*types.EventBus, []VotePool, []*Reactor) {
 	pubKey1 := ed25519.GenPrivKey().PubKey()
 	blsPrivKey1, _ := blst.RandKey()
 	blsPubKey1 := blsPrivKey1.PublicKey().Marshal()
@@ -53,19 +53,18 @@ func makeAndConnectReactors(config *cfg.Config, n int) ([]blsCommon.SecretKey, [
 	}
 
 	eventBuses := make([]*types.EventBus, n)
-	votePools := make([]Pool, n)
+	votePools := make([]VotePool, n)
 	reactors := make([]*Reactor, n)
 
 	logger := votepoolLogger()
 	for i := 0; i < n; i++ {
-		mockStore := mockStoreDB{validators: vals}
 		eventBus := types.NewEventBus()
 		err := eventBus.Start()
 		if err != nil {
 			panic(err)
 		}
 
-		votePool, err := NewVotePool(mockStore, eventBus)
+		votePool, err := NewVotePool(vals, eventBus)
 		if err != nil {
 			panic(err)
 		}

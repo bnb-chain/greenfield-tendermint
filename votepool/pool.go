@@ -3,14 +3,12 @@ package votepool
 import (
 	"context"
 	"errors"
-	"fmt"
 	"time"
 
 	lru "github.com/hashicorp/golang-lru"
 
 	"github.com/tendermint/tendermint/libs/service"
 	"github.com/tendermint/tendermint/libs/sync"
-	sm "github.com/tendermint/tendermint/state"
 	"github.com/tendermint/tendermint/types"
 )
 
@@ -31,22 +29,6 @@ const (
 	// The event type of adding new votes to the Pool successfully.
 	eventBusVotePoolUpdates = "votePoolUpdates"
 )
-
-// Pool is used for pooling cross chain, challenge votes from different validators/relayers.
-// Votes in the pool will be pruned based on Vote's expiredTime.
-type Pool interface {
-	// AddVote will add a vote to the pool. Different validations can be conducted before adding.
-	AddVote(vote *Vote) error
-
-	// GetVotesByEventHash will filter votes by event hash and event type.
-	GetVotesByEventHash(eventType EventType, eventHash []byte) ([]*Vote, error)
-
-	// GetVotesByEventType will filter votes by event type.
-	GetVotesByEventType(eventType EventType) ([]*Vote, error)
-
-	// FlushVotes will clear all votes in the pool, no matter what kinds of events.
-	FlushVotes()
-}
 
 // voteStore stores one kind of votes.
 type voteStore struct {
@@ -147,9 +129,9 @@ func (s *voteStore) pruneVotes() []string {
 	return keys
 }
 
-// pool provides a vote pool to store different kinds of vote.
+// Pool provides a vote Pool to store different kinds of vote.
 // Meanwhile, it will check the source signer of the votes, currently only votes from validators will be saved.
-type pool struct {
+type Pool struct {
 	service.BaseService
 
 	stores map[EventType]*voteStore // each event type will have a store
@@ -164,15 +146,7 @@ type pool struct {
 }
 
 // NewVotePool creates a Pool for usage, which is only used for cross chain votes currently.
-func NewVotePool(stateDB sm.Store, eventBus *types.EventBus) (*pool, error) {
-	// get the initial validators
-	state, err := stateDB.Load()
-	if err != nil {
-		return nil, fmt.Errorf("cannot load state: %w", err)
-	}
-	validatorVerifier := NewFromValidatorVerifier()
-	validatorVerifier.initValidators(state.Validators.Validators)
-
+func NewVotePool(validators []*types.Validator, eventBus *types.EventBus) (*Pool, error) {
 	eventTypes := make([]EventType, 0)
 	eventTypes = append(eventTypes, ToBscCrossChainEvent, FromBscCrossChainEvent)
 
@@ -187,7 +161,11 @@ func NewVotePool(stateDB sm.Store, eventBus *types.EventBus) (*pool, error) {
 	if err != nil {
 		panic(err)
 	}
-	votePool := &pool{
+
+	// set the initial validators
+	validatorVerifier := NewFromValidatorVerifier()
+	validatorVerifier.initValidators(validators)
+	votePool := &Pool{
 		stores:            m,
 		ticker:            ticker,
 		cache:             cache,
@@ -200,8 +178,8 @@ func NewVotePool(stateDB sm.Store, eventBus *types.EventBus) (*pool, error) {
 	return votePool, nil
 }
 
-// AddVote implements Pool.
-func (p *pool) AddVote(vote *Vote) error {
+// AddVote implements VotePool.
+func (p *Pool) AddVote(vote *Vote) error {
 	err := vote.ValidateBasic()
 	if err != nil {
 		return err
@@ -235,8 +213,8 @@ func (p *pool) AddVote(vote *Vote) error {
 	return nil
 }
 
-// GetVotesByEventHash implements Pool.
-func (p *pool) GetVotesByEventHash(eventType EventType, eventHash []byte) ([]*Vote, error) {
+// GetVotesByEventHash implements VotePool.
+func (p *Pool) GetVotesByEventHash(eventType EventType, eventHash []byte) ([]*Vote, error) {
 	store, ok := p.stores[eventType]
 	if !ok {
 		return nil, errors.New("unsupported event type")
@@ -244,8 +222,8 @@ func (p *pool) GetVotesByEventHash(eventType EventType, eventHash []byte) ([]*Vo
 	return store.getVotesByEventHash(eventType, eventHash)
 }
 
-// GetVotesByEventType implements Pool.
-func (p *pool) GetVotesByEventType(eventType EventType) ([]*Vote, error) {
+// GetVotesByEventType implements VotePool.
+func (p *Pool) GetVotesByEventType(eventType EventType) ([]*Vote, error) {
 	store, ok := p.stores[eventType]
 	if !ok {
 		return nil, errors.New("unsupported event type")
@@ -253,8 +231,8 @@ func (p *pool) GetVotesByEventType(eventType EventType) ([]*Vote, error) {
 	return store.getVotesByEventType(eventType)
 }
 
-// FlushVotes implements Pool.
-func (p *pool) FlushVotes() {
+// FlushVotes implements VotePool.
+func (p *Pool) FlushVotes() {
 	for _, singleVotePool := range p.stores {
 		singleVotePool.flushVotes()
 	}
@@ -262,7 +240,7 @@ func (p *pool) FlushVotes() {
 }
 
 // validatorUpdateRoutine will sync validator updates.
-func (p *pool) validatorUpdateRoutine() {
+func (p *Pool) validatorUpdateRoutine() {
 	sub, err := p.eventBus.Subscribe(context.Background(), "VotePoolService", types.EventQueryValidatorSetUpdates, eventBusSubscribeCap)
 	if err != nil {
 		panic(err)
@@ -279,7 +257,7 @@ func (p *pool) validatorUpdateRoutine() {
 }
 
 // prune will prune votes at the given intervals.
-func (p *pool) pruneRoutine() {
+func (p *Pool) pruneRoutine() {
 	for range p.ticker.C {
 		for _, s := range p.stores {
 			keys := s.pruneVotes()
