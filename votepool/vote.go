@@ -9,7 +9,7 @@ import (
 type Vote struct {
 	PubKey    []byte    `json:"pub_key"`    //bls public key
 	Signature []byte    `json:"signature"`  //bls signature
-	EvenType  EventType `json:"event_type"` //event type of the vote
+	EventType EventType `json:"event_type"` //event type of the vote
 	EventHash []byte    `json:"event_hash"` //the hash to sign, here []byte is used, so that vote Pool will not care about the meaning of the data
 
 	expireAt time.Time
@@ -19,7 +19,7 @@ func NewVote(pubKey, signature []byte, eventType uint8, eventHash []byte) *Vote 
 	vote := Vote{
 		PubKey:    pubKey,
 		Signature: signature,
-		EvenType:  EventType(eventType),
+		EventType: EventType(eventType),
 		EventHash: eventHash,
 	}
 	return &vote
@@ -35,7 +35,7 @@ func (v *Vote) ValidateBasic() error {
 	if len(v.EventHash) != 32 {
 		return errors.New("invalid event hash")
 	}
-	if v.EvenType != ToBscCrossChainEvent && v.EvenType != FromBscCrossChainEvent {
+	if v.EventType != ToBscCrossChainEvent && v.EventType != FromBscCrossChainEvent {
 		return errors.New("invalid event type")
 	}
 	if len(v.PubKey) != 48 {

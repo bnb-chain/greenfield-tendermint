@@ -52,7 +52,7 @@ func makeValidVotes(secKey blsCommon.SecretKey, val1 *types.Validator) (Vote, Vo
 	vote1 := Vote{
 		PubKey:    val1.BlsPubKey,
 		Signature: sign1,
-		EvenType:  FromBscCrossChainEvent,
+		EventType: FromBscCrossChainEvent,
 		EventHash: eventHash1,
 	}
 
@@ -61,7 +61,7 @@ func makeValidVotes(secKey blsCommon.SecretKey, val1 *types.Validator) (Vote, Vo
 	vote2 := Vote{
 		PubKey:    val1.BlsPubKey,
 		Signature: sign2,
-		EvenType:  ToBscCrossChainEvent,
+		EventType: ToBscCrossChainEvent,
 		EventHash: eventHash2,
 	}
 
@@ -70,7 +70,7 @@ func makeValidVotes(secKey blsCommon.SecretKey, val1 *types.Validator) (Vote, Vo
 	vote3 := Vote{
 		PubKey:    val1.BlsPubKey,
 		Signature: sign3,
-		EvenType:  FromBscCrossChainEvent,
+		EventType: FromBscCrossChainEvent,
 		EventHash: eventHash3,
 	}
 	return vote1, vote2, vote3
@@ -98,7 +98,7 @@ func TestPool_AddVote(t *testing.T) {
 			vote: Vote{
 				PubKey:    val1.BlsPubKey,
 				Signature: sign,
-				EvenType:  FromBscCrossChainEvent,
+				EventType: FromBscCrossChainEvent,
 				EventHash: eventHash,
 			},
 			err: false,
@@ -108,7 +108,7 @@ func TestPool_AddVote(t *testing.T) {
 			vote: Vote{
 				PubKey:    val1.BlsPubKey,
 				Signature: sign,
-				EvenType:  FromBscCrossChainEvent,
+				EventType: FromBscCrossChainEvent,
 				EventHash: eventHash,
 			},
 			err: false,
@@ -118,7 +118,7 @@ func TestPool_AddVote(t *testing.T) {
 			vote: Vote{
 				PubKey:    blsPubKey,
 				Signature: anotherSign,
-				EvenType:  FromBscCrossChainEvent,
+				EventType: FromBscCrossChainEvent,
 				EventHash: anotherEventHash,
 			},
 			err: true,
@@ -128,7 +128,7 @@ func TestPool_AddVote(t *testing.T) {
 			vote: Vote{
 				PubKey:    val1.BlsPubKey,
 				Signature: anotherSign,
-				EvenType:  FromBscCrossChainEvent,
+				EventType: FromBscCrossChainEvent,
 				EventHash: anotherEventHash,
 			},
 			err: true,
@@ -168,7 +168,7 @@ func TestPool_QueryFlushVote(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, 1, len(result))
 
-	result, err = votePool.GetVotesByEventHash(vote1.EvenType, vote1.EventHash)
+	result, err = votePool.GetVotesByEventHash(vote1.EventType, vote1.EventHash)
 	require.NoError(t, err)
 	require.Equal(t, 1, len(result))
 	require.Equal(t, vote1.EventHash, result[0].EventHash)

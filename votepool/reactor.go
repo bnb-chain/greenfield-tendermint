@@ -164,7 +164,7 @@ func (voteR *Reactor) broadcastVotes(peer p2p.Peer, ch chan *Vote) {
 				Message: &votepool.Vote{
 					PubKey:    vote.PubKey,
 					Signature: vote.Signature,
-					EventType: uint32(vote.EvenType),
+					EventType: uint32(vote.EventType),
 					EventHash: vote.EventHash,
 				},
 			}, voteR.Logger)

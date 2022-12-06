@@ -93,7 +93,7 @@ func TestReactorBroadcastVotes(t *testing.T) {
 	vote1 := Vote{
 		PubKey:    vals[0].BlsPubKey,
 		Signature: sign1,
-		EvenType:  testEventType,
+		EventType: testEventType,
 		EventHash: eventHash1,
 	}
 	err := pools[0].AddVote(&vote1)

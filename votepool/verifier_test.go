@@ -88,7 +88,7 @@ func TestVoteBlsVerifier(t *testing.T) {
 	vote1 := Vote{
 		PubKey:    pubKey,
 		Signature: sign,
-		EvenType:  0,
+		EventType: 0,
 		EventHash: eventHash,
 		expireAt:  time.Time{},
 	}
@@ -98,7 +98,7 @@ func TestVoteBlsVerifier(t *testing.T) {
 	vote2 := Vote{
 		PubKey:    pubKey,
 		Signature: sign,
-		EvenType:  0,
+		EventType: 0,
 		EventHash: common.HexToHash("0xb3989c2ba4b4b91b35162c137c154848f7261e16ce3f6d8c88f64cf06b737a3c").Bytes(),
 		expireAt:  time.Time{},
 	}

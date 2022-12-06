@@ -187,7 +187,7 @@ func (p *Pool) AddVote(vote *Vote) error {
 	if err != nil {
 		return err
 	}
-	store, ok := p.stores[vote.EvenType]
+	store, ok := p.stores[vote.EventType]
 	if !ok {
 		return errors.New("unsupported event type")
 	}

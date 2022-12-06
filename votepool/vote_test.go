@@ -25,7 +25,7 @@ func TestVote_ValidateBasic(t *testing.T) {
 			vote: Vote{
 				PubKey:    pubKey,
 				Signature: sign,
-				EvenType:  FromBscCrossChainEvent,
+				EventType: FromBscCrossChainEvent,
 				EventHash: eventHash,
 				expireAt:  time.Time{},
 			},
@@ -36,7 +36,7 @@ func TestVote_ValidateBasic(t *testing.T) {
 			vote: Vote{
 				PubKey:    pubKey,
 				Signature: sign,
-				EvenType:  3,
+				EventType: 3,
 				EventHash: eventHash,
 				expireAt:  time.Time{},
 			},
@@ -47,7 +47,7 @@ func TestVote_ValidateBasic(t *testing.T) {
 			vote: Vote{
 				PubKey:    pubKey,
 				Signature: sign,
-				EvenType:  FromBscCrossChainEvent,
+				EventType: FromBscCrossChainEvent,
 				EventHash: eventHash[0:12],
 				expireAt:  time.Time{},
 			},
@@ -58,7 +58,7 @@ func TestVote_ValidateBasic(t *testing.T) {
 			vote: Vote{
 				PubKey:    pubKey[0:10],
 				Signature: sign,
-				EvenType:  FromBscCrossChainEvent,
+				EventType: FromBscCrossChainEvent,
 				EventHash: eventHash,
 				expireAt:  time.Time{},
 			},
@@ -69,7 +69,7 @@ func TestVote_ValidateBasic(t *testing.T) {
 			vote: Vote{
 				PubKey:    pubKey,
 				Signature: sign[0:48],
-				EvenType:  FromBscCrossChainEvent,
+				EventType: FromBscCrossChainEvent,
 				EventHash: eventHash,
 				expireAt:  time.Time{},
 			},
@@ -80,7 +80,7 @@ func TestVote_ValidateBasic(t *testing.T) {
 			vote: Vote{
 				PubKey:    pubKey,
 				Signature: sign,
-				EvenType:  FromBscCrossChainEvent,
+				EventType: FromBscCrossChainEvent,
 				EventHash: eventHash,
 				expireAt:  time.Now().Add(-1 * time.Hour),
 			},
