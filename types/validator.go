@@ -12,6 +12,14 @@ import (
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 )
 
+const (
+	// BlsPubKeySize is the size of validator's bls pubkey.
+	BlsPubKeySize = 48
+
+	// RelayerSize is the size of validator's relayer address.
+	RelayerSize = 20
+)
+
 // Volatile state for each Validator
 // NOTE: The ProposerPriority is not included in Validator.Hash();
 // make sure to update that method if changes are made here
@@ -22,7 +30,7 @@ type Validator struct {
 
 	ProposerPriority int64 `json:"proposer_priority"`
 
-	BlsPubKey []byte `json:"bls_pub_key"` // BLS public key
+	BlsPubKey []byte `json:"bls_pub_key"` // bls public key
 	Relayer   []byte `json:"relayer"`     // authorized relayer address
 }
 
@@ -51,6 +59,13 @@ func (v *Validator) ValidateBasic() error {
 
 	if len(v.Address) != crypto.AddressSize {
 		return fmt.Errorf("validator address is the wrong size: %v", v.Address)
+	}
+
+	if len(v.BlsPubKey) != 0 && len(v.BlsPubKey) != BlsPubKeySize {
+		return fmt.Errorf("validator bls public key is the wrong size: %v", v.BlsPubKey)
+	}
+	if len(v.Relayer) != 0 && len(v.Relayer) != RelayerSize {
+		return fmt.Errorf("validator relayer address is the wrong size: %v", v.Relayer)
 	}
 
 	return nil
