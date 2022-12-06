@@ -64,7 +64,7 @@ func makeAndConnectReactors(config *cfg.Config, n int) ([]blsCommon.SecretKey, [
 			panic(err)
 		}
 
-		votePool, err := NewVotePool(vals, eventBus)
+		votePool, err := NewVotePool(logger, vals, eventBus)
 		if err != nil {
 			panic(err)
 		}

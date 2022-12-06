@@ -7,7 +7,8 @@ import (
 
 	lru "github.com/hashicorp/golang-lru"
 
-	"github.com/tendermint/tendermint/libs/service"
+	"github.com/tendermint/tendermint/libs/log"
+
 	"github.com/tendermint/tendermint/libs/sync"
 	"github.com/tendermint/tendermint/types"
 )
@@ -17,11 +18,11 @@ const (
 	// The number of cached votes (i.e., keys) to quickly filter out when adding votes.
 	cacheVoteSize = 1024
 
-	// Vote will assign the expired at time when adding to Pool.
+	// Vote will assign the expired at time when adding to the Pool.
 	voteKeepAliveAfter = time.Second * 30
 
 	// Votes in the Pool will be pruned periodically to remove useless ones.
-	pruneVoteInterval = 5 * time.Second
+	pruneVoteInterval = 3 * time.Second
 
 	// Defines the channel size for event bus subscription.
 	eventBusSubscribeCap = 200
@@ -30,7 +31,7 @@ const (
 	eventBusVotePoolUpdates = "votePoolUpdates"
 )
 
-// voteStore stores one kind of votes.
+// voteStore stores one type of votes.
 type voteStore struct {
 	eventType EventType                   // event type
 	mtx       *sync.RWMutex               // mutex for concurrency access of voteMap and others
@@ -54,12 +55,14 @@ func newVoteStore(eventType EventType) *voteStore {
 
 // Be noted: no validation is conducted in this layer.
 func (s *voteStore) addVote(vote *Vote) error {
+	eventHashStr := string(vote.EventHash[:])
+	pubKeyStr := string(vote.PubKey[:])
 	s.mtx.Lock()
 	defer s.mtx.Unlock()
 
-	subM, ok := s.voteMap[string(vote.EventHash[:])]
+	subM, ok := s.voteMap[eventHashStr]
 	if ok {
-		if _, ok := subM[string(vote.PubKey[:])]; ok {
+		if _, ok := subM[pubKeyStr]; ok {
 			return nil
 		}
 		subM[string(vote.PubKey[:])] = vote
@@ -68,8 +71,8 @@ func (s *voteStore) addVote(vote *Vote) error {
 	}
 
 	subM = make(map[string]*Vote)
-	subM[string(vote.PubKey[:])] = vote
-	s.voteMap[string(vote.EventHash[:])] = subM
+	subM[pubKeyStr] = vote
+	s.voteMap[eventHashStr] = subM
 	s.queue.Insert(vote)
 	return nil
 }
@@ -119,8 +122,7 @@ func (s *voteStore) pruneVotes() []string {
 	s.mtx.Lock()
 	defer s.mtx.Unlock()
 
-	expires, err := s.queue.PopUntil(current)
-	if err == nil {
+	if expires, err := s.queue.PopUntil(current); err == nil {
 		for _, expire := range expires {
 			keys = append(keys, expire.Key())
 			delete(s.voteMap[string(expire.EventHash[:])], string(expire.PubKey[:]))
@@ -129,10 +131,10 @@ func (s *voteStore) pruneVotes() []string {
 	return keys
 }
 
-// Pool provides a vote Pool to store different kinds of vote.
-// Meanwhile, it will check the source signer of the votes, currently only votes from validators will be saved.
+// Pool implements VotePool to store different types of votes.
+// Meanwhile, it will check the signature and source signer of a vote, only votes from validators will be saved.
 type Pool struct {
-	service.BaseService
+	logger log.Logger
 
 	stores map[EventType]*voteStore // each event type will have a store
 	ticker *time.Ticker             // prune ticker
@@ -145,16 +147,16 @@ type Pool struct {
 	eventBus *types.EventBus // to subscribe validator update events and publish new added vote events
 }
 
-// NewVotePool creates a Pool for usage, which is only used for cross chain votes currently.
-func NewVotePool(validators []*types.Validator, eventBus *types.EventBus) (*Pool, error) {
-	eventTypes := make([]EventType, 0)
-	eventTypes = append(eventTypes, ToBscCrossChainEvent, FromBscCrossChainEvent)
+// NewVotePool creates a Pool, the init validators should be supplied.
+func NewVotePool(logger log.Logger, validators []*types.Validator, eventBus *types.EventBus) (*Pool, error) {
+	// only used for cross chain votes currently.
+	eventTypes := []EventType{ToBscCrossChainEvent, FromBscCrossChainEvent}
 
 	ticker := time.NewTicker(pruneVoteInterval)
-	m := make(map[EventType]*voteStore, len(eventTypes))
+	stores := make(map[EventType]*voteStore, len(eventTypes))
 	for _, et := range eventTypes {
 		store := newVoteStore(et)
-		m[et] = store
+		stores[et] = store
 	}
 
 	cache, err := lru.New(cacheVoteSize)
@@ -166,7 +168,8 @@ func NewVotePool(validators []*types.Validator, eventBus *types.EventBus) (*Pool
 	validatorVerifier := NewFromValidatorVerifier()
 	validatorVerifier.initValidators(validators)
 	votePool := &Pool{
-		stores:            m,
+		logger:            logger,
+		stores:            stores,
 		ticker:            ticker,
 		cache:             cache,
 		eventBus:          eventBus,
@@ -207,7 +210,7 @@ func (p *Pool) AddVote(vote *Vote) error {
 	}
 	err = p.eventBus.Publish(eventBusVotePoolUpdates, *vote)
 	if err != nil {
-		p.Logger.Error("Cannot publish vote to vote pool", "err", err.Error())
+		p.logger.Error("Cannot publish vote pool event", "err", err.Error())
 	}
 	p.cache.Add(vote.Key(), struct{}{})
 	return nil
@@ -250,6 +253,7 @@ func (p *Pool) validatorUpdateRoutine() {
 		case validatorData := <-sub.Out():
 			changes := validatorData.Data().(types.EventDataValidatorSetUpdates)
 			p.validatorVerifier.updateValidators(changes.ValidatorUpdates)
+			p.logger.Info("Validators updated", "changes", changes.ValidatorUpdates)
 		case <-sub.Cancelled():
 			return
 		}

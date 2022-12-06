@@ -23,7 +23,7 @@ const (
 	// Max number of peers to connected to, when there are more peers, it will stop broadcasting votes to the new ones.
 	maxNumberOfPeers = 1024
 
-	// Max number of kept vote histories, which are received from each peer, to avoiding broadcasting useless votes to a peer.
+	// Max number of kept vote histories from each peer, to avoiding broadcasting duplicated votes to a peer.
 	maxVoteHistoryOfEachPeer = 512
 )
 
@@ -73,30 +73,32 @@ func (voteR *Reactor) SetLogger(l log.Logger) {
 // AddPeer implements Reactor.
 // It starts a broadcast routine ensuring all local votes are forwarded to the given peer.
 func (voteR *Reactor) AddPeer(peer p2p.Peer) {
+	peerID := peer.ID()
 	voteR.mtx.Lock()
 	defer voteR.mtx.Unlock()
 
 	if len(voteR.chs) < maxNumberOfPeers {
 		ch := make(chan *Vote)
-		voteR.chs[peer.ID()] = ch
+		voteR.chs[peerID] = ch
 		go voteR.broadcastVotes(peer, ch)
 
 		// there is no error when the size parameter is positive
 		c, _ := lru.New(maxVoteHistoryOfEachPeer)
-		voteR.history[peer.ID()] = c
+		voteR.history[peerID] = c
 	}
 }
 
 // RemovePeer implements Reactor.
 func (voteR *Reactor) RemovePeer(peer p2p.Peer, reason interface{}) {
+	peerID := peer.ID()
 	voteR.mtx.Lock()
 	defer voteR.mtx.Unlock()
 
-	if ch, ok := voteR.chs[peer.ID()]; ok {
+	if ch, ok := voteR.chs[peerID]; ok {
 		close(ch)
-		delete(voteR.chs, peer.ID())
-		voteR.history[peer.ID()].Purge()
-		delete(voteR.history, peer.ID())
+		delete(voteR.chs, peerID)
+		voteR.history[peerID].Purge()
+		delete(voteR.history, peerID)
 	}
 }
 
@@ -106,7 +108,7 @@ func (voteR *Reactor) GetChannels() []*conn.ChannelDescriptor {
 		{
 			ID:                  VotePoolChannel,
 			Priority:            7,
-			RecvMessageCapacity: 1024,
+			RecvMessageCapacity: 256, // size is bigger than Vote message
 			MessageType:         &votepool.Message{},
 		},
 	}
@@ -135,7 +137,7 @@ func (voteR *Reactor) ReceiveEnvelope(e p2p.Envelope) {
 	case *votepool.Vote:
 		vote := NewVote(msg.PubKey, msg.Signature, uint8(msg.EventType), msg.EventHash)
 		if err := voteR.votePool.AddVote(vote); err != nil {
-			voteR.Logger.Info("Could add vote", "vote", msg.String(), "err", err)
+			voteR.Logger.Info("Could not add vote", "vote", msg.String(), "err", err)
 		} else {
 			// keep track of votes from each peer
 			voteR.history[e.Src.ID()].Add(vote.Key(), struct{}{})
@@ -175,7 +177,7 @@ func (voteR *Reactor) broadcastVotes(peer p2p.Peer, ch chan *Vote) {
 	}
 }
 
-// subscribeVotes routine will consume votes and multiplex to channels.
+// subscribeVotes routine will consume votes from VotePool and multiplex to peer channels.
 func (voteR *Reactor) subscribeVotes() {
 	sub, err := voteR.eventBus.Subscribe(context.Background(), "VotePoolReactor", eventVotePoolAdded, eventBusSubscribeCap)
 	if err != nil {
@@ -187,8 +189,8 @@ func (voteR *Reactor) subscribeVotes() {
 			vote := voteData.Data().(Vote)
 			voteR.mtx.RLock()
 			for peer, subCh := range voteR.chs {
-				if voteR.history[peer].Contains(vote.Key()) { // the vote is received from the peer, no need to broadcast it
-				} else {
+				// if the vote is received from a remote peer, no need to send it to the remote peer
+				if !voteR.history[peer].Contains(vote.Key()) {
 					go func(ch chan *Vote) { ch <- &vote }(subCh)
 				}
 			}

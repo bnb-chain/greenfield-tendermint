@@ -11,6 +11,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/tendermint/tendermint/libs/log"
+
 	"github.com/tendermint/tendermint/crypto/ed25519"
 	"github.com/tendermint/tendermint/types"
 )
@@ -30,12 +32,13 @@ func makeVotePool() (blsCommon.SecretKey, *types.Validator, blsCommon.SecretKey,
 		val1, val2,
 	}
 
+	logger := log.TestingLogger()
 	eventBus := types.NewEventBus()
 	err := eventBus.Start()
 	if err != nil {
 		panic(err)
 	}
-	votePool, err := NewVotePool(vals, eventBus)
+	votePool, err := NewVotePool(logger, vals, eventBus)
 	if err != nil {
 		panic(err)
 	}
@@ -245,15 +248,17 @@ func TestPool_ValidatorSetUpdate(t *testing.T) {
 		ValidatorUpdates: validatorUpdates,
 	}
 
+	err := eventBus.PublishEventValidatorSetUpdates(validatorUpdateEvents)
+	require.NoError(t, err)
 	// resend the same validator updates should be fine
 	for votePool.validatorVerifier.lenOfValidators() == 2 {
-		err := eventBus.PublishEventValidatorSetUpdates(validatorUpdateEvents)
+		err = eventBus.PublishEventValidatorSetUpdates(validatorUpdateEvents)
 		require.NoError(t, err)
 		time.Sleep(200 * time.Millisecond)
 	}
 
 	vote1, _, _ := makeValidVotes(secKey, val1)
-	err := votePool.AddVote(&vote1)
+	err = votePool.AddVote(&vote1)
 	require.Error(t, err, "vote is not from validators")
 
 	// add validator 1
@@ -265,7 +270,9 @@ func TestPool_ValidatorSetUpdate(t *testing.T) {
 		ValidatorUpdates: validatorUpdates,
 	}
 
-	// resend the same validator updates should be fine
+	err = eventBus.PublishEventValidatorSetUpdates(validatorUpdateEvents)
+	require.NoError(t, err)
+	// even resend the same validator updates should be fine
 	for votePool.validatorVerifier.lenOfValidators() == 1 {
 		err = eventBus.PublishEventValidatorSetUpdates(validatorUpdateEvents)
 		require.NoError(t, err)
