@@ -17,13 +17,13 @@ func QueryVote(ctx *rpctypes.Context, eventType int, eventHash []byte) (*ctypes.
 	if len(eventHash) == 0 {
 		votes, err = env.VotePool.GetVotesByEventType(votepool.EventType(eventType))
 	} else {
-		votes, err = env.VotePool.GetVotesByEventHash(votepool.EventType(eventType), eventHash)
+		votes, err = env.VotePool.GetVotesByEventTypeEventHash(votepool.EventType(eventType), eventHash)
 	}
 
 	return &ctypes.ResultQueryVote{Votes: votes}, err
 }
 
-func FlushVote(ctx *rpctypes.Context) (*ctypes.ResultFlushVote, error) {
+func UnsafeFlushVotePool(ctx *rpctypes.Context) (*ctypes.ResultFlushVote, error) {
 	env.VotePool.FlushVotes()
 	return &ctypes.ResultFlushVote{}, nil
 }

@@ -94,8 +94,7 @@ func (voteR *Reactor) RemovePeer(peer p2p.Peer, reason interface{}) {
 	voteR.mtx.Lock()
 	defer voteR.mtx.Unlock()
 
-	if ch, ok := voteR.chs[peerID]; ok {
-		close(ch)
+	if _, ok := voteR.chs[peerID]; ok {
 		delete(voteR.chs, peerID)
 		voteR.history[peerID].Purge()
 		delete(voteR.history, peerID)
@@ -139,8 +138,10 @@ func (voteR *Reactor) ReceiveEnvelope(e p2p.Envelope) {
 		if err := voteR.votePool.AddVote(vote); err != nil {
 			voteR.Logger.Info("Could not add vote", "vote", msg.String(), "err", err)
 		} else {
-			// keep track of votes from each peer
-			voteR.history[e.Src.ID()].Add(vote.Key(), struct{}{})
+			// keep track of votes from the remote peer
+			if _, ok := voteR.history[e.Src.ID()]; ok {
+				voteR.history[e.Src.ID()].Add(vote.Key(), struct{}{})
+			}
 		}
 	default:
 		voteR.Logger.Error("Unknown message type", "src", e.Src, "chId", e.ChannelID, "msg", e.Message)
@@ -168,7 +169,7 @@ func (voteR *Reactor) broadcastVotes(peer p2p.Peer, ch chan *Vote) {
 					EventHash: vote.EventHash,
 				},
 			}, voteR.Logger)
-			voteR.Logger.Debug("sent vote", "peer", peer.ID(), "hash", vote.EventHash)
+			voteR.Logger.Debug("Sent vote to", "peer", peer.ID(), "hash", vote.EventHash)
 		case <-peer.Quit():
 			return
 		case <-voteR.Quit():
@@ -189,9 +190,9 @@ func (voteR *Reactor) subscribeVotes() {
 			vote := voteData.Data().(Vote)
 			voteR.mtx.RLock()
 			for peer, subCh := range voteR.chs {
-				// if the vote is received from a remote peer, no need to send it to the remote peer
+				// if the vote is received from a remote peer, no need to re-send it to the remote peer
 				if !voteR.history[peer].Contains(vote.Key()) {
-					go func(ch chan *Vote) { ch <- &vote }(subCh)
+					go func(ch chan *Vote, vote *Vote) { ch <- vote }(subCh, &vote)
 				}
 			}
 			voteR.mtx.RUnlock()

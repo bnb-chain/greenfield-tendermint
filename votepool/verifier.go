@@ -12,7 +12,7 @@ import (
 
 // Verifier will validate Votes by different policies.
 type Verifier interface {
-	Validate(vote Vote) error
+	Validate(vote *Vote) error
 }
 
 // FromValidatorVerifier will check whether the Vote is from a valid validator.
@@ -63,7 +63,7 @@ func (f *FromValidatorVerifier) lenOfValidators() int {
 }
 
 // Validate implements Verifier.
-func (f *FromValidatorVerifier) Validate(vote Vote) error {
+func (f *FromValidatorVerifier) Validate(vote *Vote) error {
 	f.mtx.RLock()
 	defer f.mtx.RUnlock()
 
@@ -78,7 +78,7 @@ type BlsSignatureVerifier struct {
 }
 
 // Validate implements Verifier.
-func (b *BlsSignatureVerifier) Validate(vote Vote) error {
+func (b *BlsSignatureVerifier) Validate(vote *Vote) error {
 	valid := verifySignature(vote.EventHash, vote.PubKey, vote.Signature)
 	if !valid {
 		return errors.New("invalid signature")

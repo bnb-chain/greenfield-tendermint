@@ -76,17 +76,6 @@ func TestVote_ValidateBasic(t *testing.T) {
 			err: true,
 			msg: "invalid signature",
 		},
-		{
-			vote: Vote{
-				PubKey:    pubKey,
-				Signature: sign,
-				EventType: FromBscCrossChainEvent,
-				EventHash: eventHash,
-				expireAt:  time.Now().Add(-1 * time.Hour),
-			},
-			err: true,
-			msg: "vote is expired",
-		},
 	}
 
 	for _, tc := range testCases {

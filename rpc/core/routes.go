@@ -50,7 +50,6 @@ var Routes = map[string]*rpc.RPCFunc{
 	// vote pool API
 	"broadcast_vote": rpc.NewRPCFunc(BroadcastVote, "vote"),
 	"query_vote":     rpc.NewRPCFunc(QueryVote, "event_type,event_hash"),
-	"flush_vote":     rpc.NewRPCFunc(FlushVote, ""),
 }
 
 // AddUnsafeRoutes adds unsafe routes.
@@ -59,4 +58,5 @@ func AddUnsafeRoutes() {
 	Routes["dial_seeds"] = rpc.NewRPCFunc(UnsafeDialSeeds, "seeds")
 	Routes["dial_peers"] = rpc.NewRPCFunc(UnsafeDialPeers, "peers,persistent,unconditional,private")
 	Routes["unsafe_flush_mempool"] = rpc.NewRPCFunc(UnsafeFlushMempool, "")
+	Routes["unsafe_flush_vote_pool"] = rpc.NewRPCFunc(UnsafeFlushVotePool, "")
 }

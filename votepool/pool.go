@@ -25,7 +25,7 @@ const (
 	pruneVoteInterval = 3 * time.Second
 
 	// Defines the channel size for event bus subscription.
-	eventBusSubscribeCap = 200
+	eventBusSubscribeCap = 1024
 
 	// The event type of adding new votes to the Pool successfully.
 	eventBusVotePoolUpdates = "votePoolUpdates"
@@ -33,22 +33,18 @@ const (
 
 // voteStore stores one type of votes.
 type voteStore struct {
-	eventType EventType                   // event type
-	mtx       *sync.RWMutex               // mutex for concurrency access of voteMap and others
-	voteMap   map[string]map[string]*Vote // map: eventHash -> pubKey -> Vote
+	mtx     *sync.RWMutex               // mutex for concurrency access of voteMap and others
+	voteMap map[string]map[string]*Vote // map: eventHash -> pubKey -> Vote
 
 	queue *VoteQueue // priority queue for prune votes
-
 }
 
 // newVoteStore creates a vote store to store votes.
-func newVoteStore(eventType EventType) *voteStore {
-
+func newVoteStore() *voteStore {
 	s := &voteStore{
-		eventType: eventType,
-		mtx:       &sync.RWMutex{},
-		voteMap:   make(map[string]map[string]*Vote),
-		queue:     NewVoteQueue(),
+		mtx:     &sync.RWMutex{},
+		voteMap: make(map[string]map[string]*Vote),
+		queue:   NewVoteQueue(),
 	}
 	return s
 }
@@ -61,26 +57,19 @@ func (s *voteStore) addVote(vote *Vote) error {
 	defer s.mtx.Unlock()
 
 	subM, ok := s.voteMap[eventHashStr]
-	if ok {
-		if _, ok := subM[pubKeyStr]; ok {
-			return nil
-		}
-		subM[string(vote.PubKey[:])] = vote
+	if !ok {
+		subM = make(map[string]*Vote)
+		s.voteMap[eventHashStr] = subM
+	}
+	if _, ok := subM[pubKeyStr]; !ok {
+		subM[pubKeyStr] = vote
 		s.queue.Insert(vote)
-		return nil
 	}
 
-	subM = make(map[string]*Vote)
-	subM[pubKeyStr] = vote
-	s.voteMap[eventHashStr] = subM
-	s.queue.Insert(vote)
 	return nil
 }
 
 func (s *voteStore) getVotesByEventHash(eventType EventType, eventHash []byte) ([]*Vote, error) {
-	if eventType != s.eventType {
-		return nil, errors.New("invalid event type")
-	}
 	s.mtx.RLock()
 	defer s.mtx.RUnlock()
 
@@ -94,9 +83,6 @@ func (s *voteStore) getVotesByEventHash(eventType EventType, eventHash []byte) (
 }
 
 func (s *voteStore) getVotesByEventType(eventType EventType) ([]*Vote, error) {
-	if eventType != s.eventType {
-		return nil, errors.New("invalid event type")
-	}
 	s.mtx.RLock()
 	defer s.mtx.RUnlock()
 
@@ -155,7 +141,7 @@ func NewVotePool(logger log.Logger, validators []*types.Validator, eventBus *typ
 	ticker := time.NewTicker(pruneVoteInterval)
 	stores := make(map[EventType]*voteStore, len(eventTypes))
 	for _, et := range eventTypes {
-		store := newVoteStore(et)
+		store := newVoteStore()
 		stores[et] = store
 	}
 
@@ -196,10 +182,10 @@ func (p *Pool) AddVote(vote *Vote) error {
 		return nil
 	}
 
-	if err := p.validatorVerifier.Validate(*vote); err != nil {
+	if err := p.validatorVerifier.Validate(vote); err != nil {
 		return err
 	}
-	if err := p.blsVerifier.Validate(*vote); err != nil {
+	if err := p.blsVerifier.Validate(vote); err != nil {
 		return err
 	}
 
@@ -217,7 +203,7 @@ func (p *Pool) AddVote(vote *Vote) error {
 }
 
 // GetVotesByEventHash implements VotePool.
-func (p *Pool) GetVotesByEventHash(eventType EventType, eventHash []byte) ([]*Vote, error) {
+func (p *Pool) GetVotesByEventTypeEventHash(eventType EventType, eventHash []byte) ([]*Vote, error) {
 	store, ok := p.stores[eventType]
 	if !ok {
 		return nil, errors.New("unsupported event type")

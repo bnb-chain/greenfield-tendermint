@@ -31,13 +31,13 @@ func TestVoteFromValidatorVerifier(t *testing.T) {
 	verifier.initValidators(vals)
 
 	voteFromVal1 := Vote{PubKey: blsPubKey1}
-	err := verifier.Validate(voteFromVal1)
+	err := verifier.Validate(&voteFromVal1)
 	require.NoError(t, err)
 
 	blsPrivKey, _ := blst.RandKey()
 	blsPubKey := blsPrivKey.PublicKey().Marshal()
 	voteFromOthers := Vote{PubKey: blsPubKey}
-	err = verifier.Validate(voteFromOthers)
+	err = verifier.Validate(&voteFromOthers)
 	require.Error(t, err)
 }
 
@@ -92,7 +92,7 @@ func TestVoteBlsVerifier(t *testing.T) {
 		EventHash: eventHash,
 		expireAt:  time.Time{},
 	}
-	err := verifier.Validate(vote1)
+	err := verifier.Validate(&vote1)
 	require.NoError(t, err)
 
 	vote2 := Vote{
@@ -102,6 +102,6 @@ func TestVoteBlsVerifier(t *testing.T) {
 		EventHash: common.HexToHash("0xb3989c2ba4b4b91b35162c137c154848f7261e16ce3f6d8c88f64cf06b737a3c").Bytes(),
 		expireAt:  time.Time{},
 	}
-	err = verifier.Validate(vote2)
+	err = verifier.Validate(&vote2)
 	require.Error(t, err)
 }
