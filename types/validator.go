@@ -30,8 +30,8 @@ type Validator struct {
 
 	ProposerPriority int64 `json:"proposer_priority"`
 
-	BlsPubKey []byte `json:"bls_pub_key"` // bls public key
-	Relayer   []byte `json:"relayer"`     // authorized relayer address
+	RelayerPubKey  []byte `json:"relayer_pub_key"` // bls public key of authorized relayer/operator
+	RelayerAddress []byte `json:"relayer_address"` // address of authorized relayer/operator
 }
 
 // NewValidator returns a new validator with the given pubkey and voting power.
@@ -61,11 +61,11 @@ func (v *Validator) ValidateBasic() error {
 		return fmt.Errorf("validator address is the wrong size: %v", v.Address)
 	}
 
-	if len(v.BlsPubKey) != 0 && len(v.BlsPubKey) != BlsPubKeySize {
-		return fmt.Errorf("validator bls public key is the wrong size: %v", v.BlsPubKey)
+	if len(v.RelayerPubKey) != 0 && len(v.RelayerPubKey) != BlsPubKeySize {
+		return fmt.Errorf("validator bls public key is the wrong size: %v", v.RelayerPubKey)
 	}
-	if len(v.Relayer) != 0 && len(v.Relayer) != RelayerSize {
-		return fmt.Errorf("validator relayer address is the wrong size: %v", v.Relayer)
+	if len(v.RelayerAddress) != 0 && len(v.RelayerAddress) != RelayerSize {
+		return fmt.Errorf("validator relayer address is the wrong size: %v", v.RelayerAddress)
 	}
 
 	return nil
@@ -139,10 +139,10 @@ func (v *Validator) Bytes() []byte {
 	}
 
 	pbv := tmproto.SimpleValidator{
-		PubKey:      &pk,
-		VotingPower: v.VotingPower,
-		BlsPubKey:   v.BlsPubKey,
-		Relayer:     v.Relayer,
+		PubKey:         &pk,
+		VotingPower:    v.VotingPower,
+		RelayerPubKey:  v.RelayerPubKey,
+		RelayerAddress: v.RelayerAddress,
 	}
 
 	bz, err := pbv.Marshal()
@@ -154,15 +154,15 @@ func (v *Validator) Bytes() []byte {
 
 // SetBlsPubKey will update the bls public key of validator.
 func (v *Validator) SetBlsPubKey(blsPubKey []byte) {
-	v.BlsPubKey = blsPubKey
+	v.RelayerPubKey = blsPubKey
 }
 
 // SetRelayer will update the relayer address of validator.
 func (v *Validator) SetRelayer(relayer []byte) {
-	v.Relayer = relayer
+	v.RelayerAddress = relayer
 }
 
-// ToProto converts Valiator to protobuf
+// ToProto converts Validator to protobuf
 func (v *Validator) ToProto() (*tmproto.Validator, error) {
 	if v == nil {
 		return nil, errors.New("nil validator")
@@ -178,8 +178,8 @@ func (v *Validator) ToProto() (*tmproto.Validator, error) {
 		PubKey:           pk,
 		VotingPower:      v.VotingPower,
 		ProposerPriority: v.ProposerPriority,
-		BlsPubKey:        v.BlsPubKey,
-		Relayer:          v.Relayer,
+		RelayerPubKey:    v.RelayerPubKey,
+		RelayerAddress:   v.RelayerAddress,
 	}
 
 	return &vp, nil
@@ -201,8 +201,8 @@ func ValidatorFromProto(vp *tmproto.Validator) (*Validator, error) {
 	v.PubKey = pk
 	v.VotingPower = vp.GetVotingPower()
 	v.ProposerPriority = vp.GetProposerPriority()
-	v.BlsPubKey = vp.GetBlsPubKey()
-	v.Relayer = vp.GetRelayer()
+	v.RelayerPubKey = vp.GetRelayerPubKey()
+	v.RelayerAddress = vp.GetRelayerAddress()
 	return v, nil
 }
 

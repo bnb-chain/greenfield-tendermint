@@ -4,7 +4,6 @@ import (
 	"errors"
 
 	"github.com/prysmaticlabs/prysm/crypto/bls/blst"
-	blsCommon "github.com/prysmaticlabs/prysm/crypto/bls/common"
 
 	"github.com/tendermint/tendermint/libs/sync"
 	"github.com/tendermint/tendermint/types"
@@ -31,8 +30,8 @@ func NewFromValidatorVerifier() *FromValidatorVerifier {
 
 func (f *FromValidatorVerifier) initValidators(validators []*types.Validator) {
 	for _, val := range validators {
-		if len(val.BlsPubKey) > 0 {
-			f.validators[string(val.BlsPubKey[:])] = val
+		if len(val.RelayerPubKey) > 0 {
+			f.validators[string(val.RelayerPubKey[:])] = val
 		}
 	}
 }
@@ -49,8 +48,8 @@ func (f *FromValidatorVerifier) updateValidators(changes []*types.Validator) {
 	valSet := &types.ValidatorSet{Validators: vals}
 	_ = valSet.UpdateWithChangeSet(changes) // use valSet's validators even if there are errors
 	for _, val := range valSet.Validators {
-		if len(val.BlsPubKey) > 0 {
-			f.validators[string(val.BlsPubKey[:])] = val
+		if len(val.RelayerPubKey) > 0 {
+			f.validators[string(val.RelayerPubKey[:])] = val
 		}
 	}
 }
@@ -91,16 +90,9 @@ func verifySignature(msg []byte, pubKey, sig []byte) bool {
 	if err != nil {
 		return false
 	}
-	sigs := make([][]byte, 1)
-	msgs := make([][32]byte, 1)
-	pubKeys := make([]blsCommon.PublicKey, 1)
-	sigs[0] = sig
-	copy(msgs[0][:], msg)
-	pubKeys[0] = blsPubKey
-
-	valid, err := blst.VerifyMultipleSignatures(sigs, msgs, pubKeys)
-	if !valid || err != nil {
+	signature, err := blst.SignatureFromBytes(sig)
+	if err != nil {
 		return false
 	}
-	return valid
+	return signature.Verify(blsPubKey, msg)
 }

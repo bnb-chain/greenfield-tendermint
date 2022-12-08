@@ -21,12 +21,12 @@ func makeVotePool() (blsCommon.SecretKey, *types.Validator, blsCommon.SecretKey,
 	pubKey1 := ed25519.GenPrivKey().PubKey()
 	blsPrivKey1, _ := blst.RandKey()
 	blsPubKey1 := blsPrivKey1.PublicKey().Marshal()
-	val1 := &types.Validator{Address: pubKey1.Address(), PubKey: pubKey1, BlsPubKey: blsPubKey1, VotingPower: 10}
+	val1 := &types.Validator{Address: pubKey1.Address(), PubKey: pubKey1, RelayerPubKey: blsPubKey1, VotingPower: 10}
 
 	pubKey2 := ed25519.GenPrivKey().PubKey()
 	blsPrivKey2, _ := blst.RandKey()
 	blsPubKey2 := blsPrivKey2.PublicKey().Marshal()
-	val2 := &types.Validator{Address: pubKey2.Address(), PubKey: pubKey2, BlsPubKey: blsPubKey2, VotingPower: 10}
+	val2 := &types.Validator{Address: pubKey2.Address(), PubKey: pubKey2, RelayerPubKey: blsPubKey2, VotingPower: 10}
 
 	vals := []*types.Validator{
 		val1, val2,
@@ -50,7 +50,7 @@ func makeValidVotes(secKey blsCommon.SecretKey, val1 *types.Validator) (Vote, Vo
 	eventHash1 := common.HexToHash("0xeefacfed87736ae1d8e8640f6fd7951862997782e5e79842557923e2779d5d5a").Bytes()
 	sign1 := secKey.Sign(eventHash1).Marshal()
 	vote1 := Vote{
-		PubKey:    val1.BlsPubKey,
+		PubKey:    val1.RelayerPubKey,
 		Signature: sign1,
 		EventType: FromBscCrossChainEvent,
 		EventHash: eventHash1,
@@ -59,7 +59,7 @@ func makeValidVotes(secKey blsCommon.SecretKey, val1 *types.Validator) (Vote, Vo
 	eventHash2 := common.HexToHash("0x7e19be15d0d524a1ca5e39be503d18584c23426920bdc23b159c37a2341913d0").Bytes()
 	sign2 := secKey.Sign(eventHash2).Marshal()
 	vote2 := Vote{
-		PubKey:    val1.BlsPubKey,
+		PubKey:    val1.RelayerPubKey,
 		Signature: sign2,
 		EventType: ToBscCrossChainEvent,
 		EventHash: eventHash2,
@@ -68,7 +68,7 @@ func makeValidVotes(secKey blsCommon.SecretKey, val1 *types.Validator) (Vote, Vo
 	eventHash3 := common.HexToHash("0xb941130c8d3508f642aba83db420f9cef6a6ebb7f869e3cef06f276bdcf205a9").Bytes()
 	sign3 := secKey.Sign(eventHash3).Marshal()
 	vote3 := Vote{
-		PubKey:    val1.BlsPubKey,
+		PubKey:    val1.RelayerPubKey,
 		Signature: sign3,
 		EventType: FromBscCrossChainEvent,
 		EventHash: eventHash3,
@@ -96,7 +96,7 @@ func TestPool_AddVote(t *testing.T) {
 	}{
 		{
 			vote: Vote{
-				PubKey:    val1.BlsPubKey,
+				PubKey:    val1.RelayerPubKey,
 				Signature: sign,
 				EventType: FromBscCrossChainEvent,
 				EventHash: eventHash,
@@ -106,7 +106,7 @@ func TestPool_AddVote(t *testing.T) {
 		},
 		{
 			vote: Vote{
-				PubKey:    val1.BlsPubKey,
+				PubKey:    val1.RelayerPubKey,
 				Signature: sign,
 				EventType: FromBscCrossChainEvent,
 				EventHash: eventHash,
@@ -126,7 +126,7 @@ func TestPool_AddVote(t *testing.T) {
 		},
 		{
 			vote: Vote{
-				PubKey:    val1.BlsPubKey,
+				PubKey:    val1.RelayerPubKey,
 				Signature: anotherSign,
 				EventType: FromBscCrossChainEvent,
 				EventHash: anotherEventHash,
@@ -262,7 +262,7 @@ func TestPool_ValidatorSetUpdate(t *testing.T) {
 	require.Error(t, err, "vote is not from validators")
 
 	// add validator 1
-	addVal := types.Validator{PubKey: val1.PubKey, Address: val1.Address, BlsPubKey: val1.BlsPubKey, VotingPower: 10}
+	addVal := types.Validator{PubKey: val1.PubKey, Address: val1.Address, RelayerPubKey: val1.RelayerPubKey, VotingPower: 10}
 	validatorUpdates = []*types.Validator{
 		&addVal,
 	}
