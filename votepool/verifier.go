@@ -30,8 +30,8 @@ func NewFromValidatorVerifier() *FromValidatorVerifier {
 
 func (f *FromValidatorVerifier) initValidators(validators []*types.Validator) {
 	for _, val := range validators {
-		if len(val.RelayerPubKey) > 0 {
-			f.validators[string(val.RelayerPubKey[:])] = val
+		if len(val.RelayerBlsKey) > 0 {
+			f.validators[string(val.RelayerBlsKey[:])] = val
 		}
 	}
 }
@@ -41,15 +41,15 @@ func (f *FromValidatorVerifier) updateValidators(changes []*types.Validator) {
 	defer f.mtx.Unlock()
 
 	vals := make([]*types.Validator, 0)
-	for k, val := range f.validators {
+	for _, val := range f.validators {
 		vals = append(vals, val)
-		delete(f.validators, k)
 	}
+	f.validators = make(map[string]*types.Validator)
 	valSet := &types.ValidatorSet{Validators: vals}
 	_ = valSet.UpdateWithChangeSet(changes) // use valSet's validators even if there are errors
 	for _, val := range valSet.Validators {
-		if len(val.RelayerPubKey) > 0 {
-			f.validators[string(val.RelayerPubKey[:])] = val
+		if len(val.RelayerBlsKey) > 0 {
+			f.validators[string(val.RelayerBlsKey[:])] = val
 		}
 	}
 }

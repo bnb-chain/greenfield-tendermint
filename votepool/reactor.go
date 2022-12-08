@@ -20,9 +20,6 @@ const (
 	// VotePoolChannel is the p2p channel used for sending and receiving votes in vote Pool.
 	VotePoolChannel = byte(0x70)
 
-	// Max number of peers to connected to, when there are more peers, it will stop broadcasting votes to the new ones.
-	maxNumberOfPeers = 1024
-
 	// Max number of kept vote histories from each peer, to avoiding broadcasting duplicated votes to a peer.
 	maxVoteHistoryOfEachPeer = 512
 )
@@ -34,9 +31,8 @@ type Reactor struct {
 	p2p.BaseReactor
 	votePool VotePool
 
-	mtx     *sync.RWMutex         // for protection of chs
-	chs     map[p2p.ID]chan *Vote // for subscription
-	history map[p2p.ID]*lru.Cache // to keep votes from peers
+	mtx     *sync.RWMutex         // for protection of history
+	history map[p2p.ID]*lru.Cache // to cache keys of votes from peers
 
 	eventBus *types.EventBus
 }
@@ -46,23 +42,11 @@ func NewReactor(votePool VotePool, eventBus *types.EventBus) *Reactor {
 	voteR := &Reactor{
 		votePool: votePool,
 		mtx:      &sync.RWMutex{},
-		chs:      make(map[p2p.ID]chan *Vote, 0),
 		history:  make(map[p2p.ID]*lru.Cache, 0),
 		eventBus: eventBus,
 	}
 	voteR.BaseReactor = *p2p.NewBaseReactor("VotePool", voteR)
 	return voteR
-}
-
-// OnStart implements Service.
-// A goroutine will be started to multiplex new Votes.
-func (voteR *Reactor) OnStart() error {
-	go voteR.subscribeVotes()
-	return nil
-}
-
-// OnStop implements Service.
-func (voteR *Reactor) OnStop() {
 }
 
 // SetLogger implements Service.
@@ -71,21 +55,15 @@ func (voteR *Reactor) SetLogger(l log.Logger) {
 }
 
 // AddPeer implements Reactor.
-// It starts a broadcast routine ensuring all local votes are forwarded to the given peer.
+// It starts a broadcast routine ensuring all local votes are forwarded to the remote peer.
 func (voteR *Reactor) AddPeer(peer p2p.Peer) {
-	peerID := peer.ID()
 	voteR.mtx.Lock()
 	defer voteR.mtx.Unlock()
 
-	if len(voteR.chs) < maxNumberOfPeers {
-		ch := make(chan *Vote)
-		voteR.chs[peerID] = ch
-		go voteR.broadcastVotes(peer, ch)
-
-		// there is no error when the size parameter is positive
-		c, _ := lru.New(maxVoteHistoryOfEachPeer)
-		voteR.history[peerID] = c
-	}
+	// positive parameter will never return error
+	cache, _ := lru.New(maxVoteHistoryOfEachPeer)
+	voteR.history[peer.ID()] = cache
+	go voteR.broadcastVotes(peer, cache)
 }
 
 // RemovePeer implements Reactor.
@@ -94,10 +72,13 @@ func (voteR *Reactor) RemovePeer(peer p2p.Peer, reason interface{}) {
 	voteR.mtx.Lock()
 	defer voteR.mtx.Unlock()
 
-	if _, ok := voteR.chs[peerID]; ok {
-		delete(voteR.chs, peerID)
+	if _, ok := voteR.history[peerID]; ok {
 		voteR.history[peerID].Purge()
 		delete(voteR.history, peerID)
+		err := voteR.eventBus.Unsubscribe(context.Background(), string(peerID), eventVotePoolAdded)
+		if err != nil {
+			voteR.Logger.Error("Cannot unsubscribe events", "peer", peerID, "event", eventVotePoolAdded)
+		}
 	}
 }
 
@@ -138,10 +119,12 @@ func (voteR *Reactor) ReceiveEnvelope(e p2p.Envelope) {
 		if err := voteR.votePool.AddVote(vote); err != nil {
 			voteR.Logger.Info("Could not add vote", "vote", msg.String(), "err", err)
 		} else {
+			voteR.mtx.RLock()
 			// keep track of votes from the remote peer
 			if _, ok := voteR.history[e.Src.ID()]; ok {
 				voteR.history[e.Src.ID()].Add(vote.Key(), struct{}{})
 			}
+			voteR.mtx.RUnlock()
 		}
 	default:
 		voteR.Logger.Error("Unknown message type", "src", e.Src, "chId", e.ChannelID, "msg", e.Message)
@@ -152,35 +135,11 @@ func (voteR *Reactor) ReceiveEnvelope(e p2p.Envelope) {
 }
 
 // broadcastVotes routine will broadcast votes to peers.
-func (voteR *Reactor) broadcastVotes(peer p2p.Peer, ch chan *Vote) {
-	for {
-		if !voteR.IsRunning() || !peer.IsRunning() {
-			return
-		}
-
-		select {
-		case vote := <-ch:
-			_ = p2p.SendEnvelopeShim(peer, p2p.Envelope{ //nolint: staticcheck
-				ChannelID: VotePoolChannel,
-				Message: &votepool.Vote{
-					PubKey:    vote.PubKey,
-					Signature: vote.Signature,
-					EventType: uint32(vote.EventType),
-					EventHash: vote.EventHash,
-				},
-			}, voteR.Logger)
-			voteR.Logger.Debug("Sent vote to", "peer", peer.ID(), "hash", vote.EventHash)
-		case <-peer.Quit():
-			return
-		case <-voteR.Quit():
-			return
-		}
+func (voteR *Reactor) broadcastVotes(peer p2p.Peer, cache *lru.Cache) {
+	if !voteR.IsRunning() || !peer.IsRunning() {
+		return
 	}
-}
-
-// subscribeVotes routine will consume votes from VotePool and multiplex to peer channels.
-func (voteR *Reactor) subscribeVotes() {
-	sub, err := voteR.eventBus.Subscribe(context.Background(), "VotePoolReactor", eventVotePoolAdded, eventBusSubscribeCap)
+	sub, err := voteR.eventBus.Subscribe(context.Background(), string(peer.ID()), eventVotePoolAdded, eventBusSubscribeCap)
 	if err != nil {
 		panic(err)
 	}
@@ -188,15 +147,24 @@ func (voteR *Reactor) subscribeVotes() {
 		select {
 		case voteData := <-sub.Out():
 			vote := voteData.Data().(Vote)
-			voteR.mtx.RLock()
-			for peer, subCh := range voteR.chs {
-				// if the vote is received from a remote peer, no need to re-send it to the remote peer
-				if !voteR.history[peer].Contains(vote.Key()) {
-					go func(ch chan *Vote, vote *Vote) { ch <- vote }(subCh, &vote)
-				}
+			// if the vote is received from a remote peer, no need to re-send it to the remote peer
+			if !cache.Contains(vote.Key()) {
+				_ = p2p.SendEnvelopeShim(peer, p2p.Envelope{ //nolint: staticcheck
+					ChannelID: VotePoolChannel,
+					Message: &votepool.Vote{
+						PubKey:    vote.PubKey,
+						Signature: vote.Signature,
+						EventType: uint32(vote.EventType),
+						EventHash: vote.EventHash,
+					},
+				}, voteR.Logger)
+				voteR.Logger.Debug("Sent vote to", "peer", peer.ID(), "hash", vote.EventHash)
 			}
-			voteR.mtx.RUnlock()
 		case <-sub.Cancelled():
+			return
+		case <-voteR.Quit():
+			return
+		case <-peer.Quit():
 			return
 		}
 	}

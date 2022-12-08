@@ -1662,7 +1662,7 @@ func TestValidatorSetHash(t *testing.T) {
 	//mock relayer bls public key & address
 	blsPubKey := ed25519.GenPrivKey().PubKey().Bytes()
 	relayer := ed25519.GenPrivKey().PubKey().Address().Bytes()
-	val.SetRelayerPubKey(blsPubKey)
+	val.SetRelayerBlsKey(blsPubKey)
 	val.SetRelayerAddress(relayer)
 
 	validatorSet = ValidatorSet{

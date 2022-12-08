@@ -1,6 +1,7 @@
 package votepool
 
 import (
+	"bytes"
 	"sync"
 	"testing"
 	"time"
@@ -37,12 +38,12 @@ func makeAndConnectReactors(config *cfg.Config, n int) ([]blsCommon.SecretKey, [
 	pubKey1 := ed25519.GenPrivKey().PubKey()
 	blsPrivKey1, _ := blst.RandKey()
 	blsPubKey1 := blsPrivKey1.PublicKey().Marshal()
-	val1 := &types.Validator{Address: pubKey1.Address(), PubKey: pubKey1, RelayerPubKey: blsPubKey1, VotingPower: 10}
+	val1 := &types.Validator{Address: pubKey1.Address(), PubKey: pubKey1, RelayerBlsKey: blsPubKey1, VotingPower: 10}
 
 	pubKey2 := ed25519.GenPrivKey().PubKey()
 	blsPrivKey2, _ := blst.RandKey()
 	blsPubKey2 := blsPrivKey2.PublicKey().Marshal()
-	val2 := &types.Validator{Address: pubKey2.Address(), PubKey: pubKey2, RelayerPubKey: blsPubKey2, VotingPower: 10}
+	val2 := &types.Validator{Address: pubKey2.Address(), PubKey: pubKey2, RelayerBlsKey: blsPubKey2, VotingPower: 10}
 
 	pks := []blsCommon.SecretKey{
 		blsPrivKey1, blsPrivKey2,
@@ -91,7 +92,7 @@ func TestReactorBroadcastVotes(t *testing.T) {
 	eventHash1 := common.HexToHash("0xeefacfed87736ae1d8e8640f6fd7951862997782e5e79842557923e2779d5d5a").Bytes()
 	sign1 := secKey.Sign(eventHash1).Marshal()
 	vote1 := Vote{
-		PubKey:    vals[0].RelayerPubKey,
+		PubKey:    vals[0].RelayerBlsKey,
 		Signature: sign1,
 		EventType: testEventType,
 		EventHash: eventHash1,
@@ -100,6 +101,19 @@ func TestReactorBroadcastVotes(t *testing.T) {
 	require.NoError(t, err)
 
 	waitVotesReceived(t, reactors, eventHash1)
+
+	eventHash2 := common.HexToHash("0x7e19be15d0d524a1ca5e39be503d18584c23426920bdc23b159c37a2341913d0").Bytes()
+	sign2 := secKey.Sign(eventHash2).Marshal()
+	vote2 := Vote{
+		PubKey:    vals[0].RelayerBlsKey,
+		Signature: sign2,
+		EventType: testEventType,
+		EventHash: eventHash2,
+	}
+	err = pools[0].AddVote(&vote2)
+	require.NoError(t, err)
+
+	waitVotesReceived(t, reactors, eventHash2)
 }
 
 func waitVotesReceived(t *testing.T, reactors []*Reactor, eventHash []byte) {
@@ -130,8 +144,14 @@ func waitForVoteOnReactor(t *testing.T, eventHash []byte, r *Reactor) {
 	for {
 		time.Sleep(time.Millisecond * 100)
 		votes, _ := r.votePool.GetVotesByEventType(testEventType)
-		if len(votes) > 0 {
-			require.Equal(t, eventHash, votes[0].EventHash)
+		found := false
+		for _, vote := range votes {
+			if bytes.Equal(eventHash, vote.EventHash) {
+				found = true
+				break
+			}
+		}
+		if found {
 			break
 		}
 	}
