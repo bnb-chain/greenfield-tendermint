@@ -43,20 +43,20 @@ func TestValidatorValidateBasic(t *testing.T) {
 	priv := NewMockPV()
 	pubKey, _ := priv.GetPubKey()
 
-	blsPubKey := make([]byte, BlsPubKeySize)
+	blsPubKey := make([]byte, RelayerPubKeySize)
 	rand.Read(blsPubKey)
-	relayer := make([]byte, RelayerSize)
+	relayer := make([]byte, RelayerAddressSize)
 	rand.Read(relayer)
 
 	val := NewValidator(pubKey, 1)
-	val.SetBlsPubKey(blsPubKey)
-	val.SetRelayer(relayer)
+	val.SetRelayerPubKey(blsPubKey)
+	val.SetRelayerAddress(relayer)
 
 	wrongBlsPubKey := val.Copy()
-	wrongBlsPubKey.SetBlsPubKey([]byte{'a'})
+	wrongBlsPubKey.SetRelayerPubKey([]byte{'a'})
 
 	wrongRelayer := val.Copy()
-	wrongRelayer.SetRelayer([]byte{'a'})
+	wrongRelayer.SetRelayerAddress([]byte{'a'})
 
 	testCases := []struct {
 		val *Validator
@@ -109,7 +109,7 @@ func TestValidatorValidateBasic(t *testing.T) {
 		{
 			val: wrongBlsPubKey,
 			err: true,
-			msg: "validator bls public key is the wrong size: [97]",
+			msg: "validator relayer public key is the wrong size: [97]",
 		},
 		{
 			val: wrongRelayer,

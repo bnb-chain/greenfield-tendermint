@@ -294,12 +294,12 @@ func TestUpdateValidators(t *testing.T) {
 	pk2, err := cryptoenc.PubKeyToProto(pubkey2)
 	require.NoError(t, err)
 
-	// updated validator with mock bls public key and relayer address
+	// updated validator with mock relayer bls public key and relayer address
 	updated := types.NewValidator(pubkey1, 20)
 	blsPubKey := ed25519.GenPrivKey().PubKey().Bytes()
 	relayer := ed25519.GenPrivKey().PubKey().Address().Bytes()
-	updated.SetBlsPubKey(blsPubKey)
-	updated.SetRelayer(relayer)
+	updated.SetRelayerPubKey(blsPubKey)
+	updated.SetRelayerAddress(relayer)
 
 	testCases := []struct {
 		name string
@@ -339,7 +339,7 @@ func TestUpdateValidators(t *testing.T) {
 			true,
 		},
 		{
-			"updating a validator with bls public key and relayer address is OK",
+			"updating a validator with relayer bls public key and address is OK",
 			types.NewValidatorSet([]*types.Validator{val1}),
 			[]abci.ValidatorUpdate{{PubKey: pk, Power: 20, RelayerPubKey: blsPubKey, RelayerAddress: relayer}},
 			types.NewValidatorSet([]*types.Validator{updated}),
@@ -427,7 +427,7 @@ func TestEndBlockValidatorUpdates(t *testing.T) {
 
 	app.ValidatorUpdates = []abci.ValidatorUpdate{
 		{PubKey: pk, Power: 10}, // add a new validator
-		{PubKey: currentValPk, Power: currentValPower, RelayerPubKey: blsPubKey, RelayerAddress: relayer}, // updating a validator's bls pub key and relayer
+		{PubKey: currentValPk, Power: currentValPower, RelayerPubKey: blsPubKey, RelayerAddress: relayer}, // updating a validator's relayer pub key and address
 	}
 
 	state, _, err = blockExec.ApplyBlock(state, blockID, block)

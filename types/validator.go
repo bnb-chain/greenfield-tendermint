@@ -13,11 +13,11 @@ import (
 )
 
 const (
-	// BlsPubKeySize is the size of validator's bls pubkey.
-	BlsPubKeySize = 48
+	// RelayerPubKeySize is the size of validator's relayer bls public key.
+	RelayerPubKeySize = 48
 
-	// RelayerSize is the size of validator's relayer address.
-	RelayerSize = 20
+	// RelayerAddressSize is the size of validator's relayer address.
+	RelayerAddressSize = 20
 )
 
 // Volatile state for each Validator
@@ -61,10 +61,10 @@ func (v *Validator) ValidateBasic() error {
 		return fmt.Errorf("validator address is the wrong size: %v", v.Address)
 	}
 
-	if len(v.RelayerPubKey) != 0 && len(v.RelayerPubKey) != BlsPubKeySize {
-		return fmt.Errorf("validator bls public key is the wrong size: %v", v.RelayerPubKey)
+	if len(v.RelayerPubKey) != 0 && len(v.RelayerPubKey) != RelayerPubKeySize {
+		return fmt.Errorf("validator relayer public key is the wrong size: %v", v.RelayerPubKey)
 	}
-	if len(v.RelayerAddress) != 0 && len(v.RelayerAddress) != RelayerSize {
+	if len(v.RelayerAddress) != 0 && len(v.RelayerAddress) != RelayerAddressSize {
 		return fmt.Errorf("validator relayer address is the wrong size: %v", v.RelayerAddress)
 	}
 
@@ -152,13 +152,13 @@ func (v *Validator) Bytes() []byte {
 	return bz
 }
 
-// SetBlsPubKey will update the bls public key of validator.
-func (v *Validator) SetBlsPubKey(blsPubKey []byte) {
+// SetRelayerPubKey will update the bls public key of relayer.
+func (v *Validator) SetRelayerPubKey(blsPubKey []byte) {
 	v.RelayerPubKey = blsPubKey
 }
 
-// SetRelayer will update the relayer address of validator.
-func (v *Validator) SetRelayer(relayer []byte) {
+// SetRelayerAddress will update the relayer address of validator.
+func (v *Validator) SetRelayerAddress(relayer []byte) {
 	v.RelayerAddress = relayer
 }
 
