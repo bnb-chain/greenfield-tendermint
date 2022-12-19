@@ -30,7 +30,7 @@ type Validator struct {
 
 	ProposerPriority int64 `json:"proposer_priority"`
 
-	RelayerBlsKey  []byte `json:"relayer_pub_key"` // bls public key of authorized relayer/operator
+	RelayerBlsKey  []byte `json:"relayer_bls_key"` // bls public key of authorized relayer/operator
 	RelayerAddress []byte `json:"relayer_address"` // address of authorized relayer/operator
 }
 
