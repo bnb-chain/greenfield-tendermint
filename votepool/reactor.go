@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/gogo/protobuf/proto"
 	lru "github.com/hashicorp/golang-lru"
@@ -22,6 +23,9 @@ const (
 
 	// Max number of kept vote histories from each peer, to avoiding broadcasting duplicated votes to a peer.
 	maxVoteHistoryOfEachPeer = 512
+
+	// After timeout current peer can broadcast votes to a remote peer even though the votes were received from it earlier.
+	cacheTimeout = 3 * time.Second
 )
 
 var eventVotePoolAdded = types.QueryForEvent(eventBusVotePoolUpdates)
@@ -116,14 +120,13 @@ func (voteR *Reactor) ReceiveEnvelope(e p2p.Envelope) {
 	switch msg := e.Message.(type) {
 	case *votepool.Vote:
 		vote := NewVote(msg.PubKey, msg.Signature, uint8(msg.EventType), msg.EventHash)
+		voteR.Logger.Debug("Receive vote", "vote", vote.Key(), "src", e.Src)
 		if err := voteR.votePool.AddVote(vote); err != nil {
-			voteR.Logger.Info("Could not add vote", "vote", msg.String(), "err", err)
+			voteR.Logger.Info("Could not add vote", "vote", vote.Key(), "err", err)
 		} else {
 			voteR.mtx.RLock()
-			// keep track of votes from the remote peer
-			if _, ok := voteR.history[e.Src.ID()]; ok {
-				voteR.history[e.Src.ID()].Add(vote.Key(), struct{}{})
-			}
+			// keep track of votes from the remote peer, update timestamp
+			voteR.history[e.Src.ID()].Add(vote.Key(), time.Now())
 			voteR.mtx.RUnlock()
 		}
 	default:
@@ -147,8 +150,19 @@ func (voteR *Reactor) broadcastVotes(peer p2p.Peer, cache *lru.Cache) {
 		select {
 		case voteData := <-sub.Out():
 			vote := voteData.Data().(Vote)
-			// if the vote is received from a remote peer, no need to re-send it to the remote peer
-			if !cache.Contains(vote.Key()) {
+			// send votes to remote peer, if
+			// 1) did not receive the vote from the remote peer
+			// 2) the vote is received earlier than `time.Now() - cacheTimeout`
+			needToSend := true
+			value, existed := cache.Get(vote.Key())
+			if existed {
+				needToSend = false
+				t, ok := value.(time.Time)
+				if ok && time.Now().After(t.Add(cacheTimeout)) {
+					needToSend = true
+				}
+			}
+			if needToSend {
 				_ = p2p.SendEnvelopeShim(peer, p2p.Envelope{ //nolint: staticcheck
 					ChannelID: VotePoolChannel,
 					Message: &votepool.Vote{
@@ -158,7 +172,7 @@ func (voteR *Reactor) broadcastVotes(peer p2p.Peer, cache *lru.Cache) {
 						EventHash: vote.EventHash,
 					},
 				}, voteR.Logger)
-				voteR.Logger.Debug("Sent vote to", "peer", peer.ID(), "hash", vote.EventHash)
+				voteR.Logger.Debug("Sent vote to", "peer", peer, "vote", vote.Key())
 			}
 		case <-sub.Cancelled():
 			return
