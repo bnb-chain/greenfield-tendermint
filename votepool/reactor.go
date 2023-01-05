@@ -57,7 +57,7 @@ func (voteR *Reactor) OnStart() error {
 	if err := voteR.BaseReactor.OnStart(); err != nil {
 		return err
 	}
-	if err := voteR.votePool.OnStart(); err != nil {
+	if err := voteR.votePool.Start(); err != nil {
 		return err
 	}
 	return nil
@@ -66,7 +66,7 @@ func (voteR *Reactor) OnStart() error {
 // OnStop implements Service.
 func (voteR *Reactor) OnStop() {
 	voteR.BaseReactor.OnStop()
-	voteR.votePool.OnStop()
+	voteR.votePool.Stop()
 }
 
 // SetLogger implements Service.
