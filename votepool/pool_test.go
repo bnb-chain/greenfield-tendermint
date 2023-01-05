@@ -38,11 +38,15 @@ func makeVotePool() (blsCommon.SecretKey, *types.Validator, blsCommon.SecretKey,
 	if err != nil {
 		panic(err)
 	}
+
 	votePool, err := NewVotePool(logger, vals, eventBus)
 	if err != nil {
 		panic(err)
 	}
-	votePool.Start()
+	err = votePool.Start()
+	if err != nil {
+		panic(err)
+	}
 
 	return blsPrivKey1, val1, blsPrivKey2, val2, eventBus, votePool
 }

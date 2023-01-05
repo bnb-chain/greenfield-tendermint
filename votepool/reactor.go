@@ -57,7 +57,9 @@ func (voteR *Reactor) OnStart() error {
 	if err := voteR.BaseReactor.OnStart(); err != nil {
 		return err
 	}
-	voteR.votePool.OnStart()
+	if err := voteR.votePool.OnStart(); err != nil {
+		return err
+	}
 	return nil
 }
 
