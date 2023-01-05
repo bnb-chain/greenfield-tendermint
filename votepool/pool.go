@@ -247,6 +247,9 @@ func (p *Pool) FlushVotes() {
 
 // validatorUpdateRoutine will sync validator updates.
 func (p *Pool) validatorUpdateRoutine() {
+	if !p.IsRunning() || !p.eventBus.IsRunning() {
+		return
+	}
 	sub, err := p.eventBus.Subscribe(context.Background(), "VotePoolService", types.EventQueryValidatorSetUpdates, eventBusSubscribeCap)
 	if err != nil {
 		panic(err)
