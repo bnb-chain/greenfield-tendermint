@@ -66,7 +66,7 @@ func (voteR *Reactor) OnStart() error {
 // OnStop implements Service.
 func (voteR *Reactor) OnStop() {
 	voteR.BaseReactor.OnStop()
-	voteR.votePool.Stop()
+	_ = voteR.votePool.Stop()
 }
 
 // SetLogger implements Service.
