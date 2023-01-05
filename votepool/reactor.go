@@ -2,7 +2,6 @@ package votepool
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"time"
 
@@ -49,8 +48,23 @@ func NewReactor(votePool VotePool, eventBus *types.EventBus) *Reactor {
 		history:  make(map[p2p.ID]*lru.Cache, 0),
 		eventBus: eventBus,
 	}
-	voteR.BaseReactor = *p2p.NewBaseReactor("VotePool", voteR)
+	voteR.BaseReactor = *p2p.NewBaseReactor("VotePoolReactor", voteR)
 	return voteR
+}
+
+// OnStart implements Service.
+func (voteR *Reactor) OnStart() error {
+	if err := voteR.BaseReactor.OnStart(); err != nil {
+		return err
+	}
+	voteR.votePool.OnStart()
+	return nil
+}
+
+// OnStop implements Service.
+func (voteR *Reactor) OnStop() {
+	voteR.BaseReactor.OnStop()
+	voteR.votePool.OnStop()
 }
 
 // SetLogger implements Service.
@@ -76,8 +90,10 @@ func (voteR *Reactor) RemovePeer(peer p2p.Peer, reason interface{}) {
 	voteR.mtx.Lock()
 	defer voteR.mtx.Unlock()
 
-	if _, ok := voteR.history[peerID]; ok {
-		voteR.history[peerID].Purge()
+	if cache, ok := voteR.history[peerID]; ok {
+		if cache != nil {
+			cache.Purge()
+		}
 		delete(voteR.history, peerID)
 		err := voteR.eventBus.Unsubscribe(context.Background(), string(peerID), eventVotePoolAdded)
 		if err != nil {
@@ -132,7 +148,6 @@ func (voteR *Reactor) ReceiveEnvelope(e p2p.Envelope) {
 	default:
 		voteR.Logger.Error("Unknown message type", "src", e.Src, "chId", e.ChannelID, "msg", e.Message)
 		voteR.Switch.StopPeerForError(e.Src, fmt.Errorf("votepool cannot handle message of type: %T", e.Message))
-		voteR.RemovePeer(e.Src, errors.New("invalid message type for vote pool channel"))
 		return
 	}
 }
@@ -151,7 +166,7 @@ func (voteR *Reactor) broadcastVotes(peer p2p.Peer, cache *lru.Cache) {
 		case voteData := <-sub.Out():
 			vote := voteData.Data().(Vote)
 			// send votes to remote peer, if
-			// 1) did not receive the vote from the remote peer
+			// 1) it did not receive the vote from the remote peer, or,
 			// 2) the vote is received earlier than `time.Now() - cacheTimeout`
 			needToSend := true
 			value, existed := cache.Get(vote.Key())

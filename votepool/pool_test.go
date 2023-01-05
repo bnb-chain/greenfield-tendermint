@@ -42,6 +42,7 @@ func makeVotePool() (blsCommon.SecretKey, *types.Validator, blsCommon.SecretKey,
 	if err != nil {
 		panic(err)
 	}
+	votePool.Start()
 
 	return blsPrivKey1, val1, blsPrivKey2, val2, eventBus, votePool
 }
@@ -168,13 +169,13 @@ func TestPool_QueryFlushVote(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, 1, len(result))
 
-	result, err = votePool.GetVotesByEventTypeEventHash(vote1.EventType, vote1.EventHash)
+	result, err = votePool.GetVotesByEventTypeAndHash(vote1.EventType, vote1.EventHash)
 	require.NoError(t, err)
 	require.Equal(t, 1, len(result))
 	require.Equal(t, vote1.EventHash, result[0].EventHash)
 
 	// cannot find
-	result, err = votePool.GetVotesByEventTypeEventHash(ToBscCrossChainEvent, vote1.EventHash)
+	result, err = votePool.GetVotesByEventTypeAndHash(ToBscCrossChainEvent, vote1.EventHash)
 	require.NoError(t, err)
 	require.Equal(t, 0, len(result))
 

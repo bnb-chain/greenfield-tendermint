@@ -6,6 +6,7 @@ import (
 	"time"
 
 	lru "github.com/hashicorp/golang-lru"
+	"github.com/tendermint/tendermint/libs/service"
 
 	"github.com/tendermint/tendermint/libs/log"
 
@@ -39,7 +40,7 @@ type voteStore struct {
 	queue *VoteQueue // priority queue for prune votes
 }
 
-// newVoteStore creates a vote store to store votes.
+// newVoteStore creates a store to store votes.
 func newVoteStore() *voteStore {
 	s := &voteStore{
 		mtx:     &sync.RWMutex{},
@@ -69,7 +70,7 @@ func (s *voteStore) addVote(vote *Vote) error {
 	return nil
 }
 
-func (s *voteStore) getVotesByEventHash(eventType EventType, eventHash []byte) ([]*Vote, error) {
+func (s *voteStore) getVotesByEventHash(eventHash []byte) ([]*Vote, error) {
 	s.mtx.RLock()
 	defer s.mtx.RUnlock()
 
@@ -82,7 +83,7 @@ func (s *voteStore) getVotesByEventHash(eventType EventType, eventHash []byte) (
 	return votes, nil
 }
 
-func (s *voteStore) getVotesByEventType(eventType EventType) ([]*Vote, error) {
+func (s *voteStore) getAllVotes() ([]*Vote, error) {
 	s.mtx.RLock()
 	defer s.mtx.RUnlock()
 
@@ -100,6 +101,7 @@ func (s *voteStore) flushVotes() {
 	defer s.mtx.Unlock()
 
 	s.voteMap = make(map[string]map[string]*Vote)
+	s.queue = NewVoteQueue()
 }
 
 func (s *voteStore) pruneVotes() []string {
@@ -120,7 +122,7 @@ func (s *voteStore) pruneVotes() []string {
 // Pool implements VotePool to store different types of votes.
 // Meanwhile, it will check the signature and source signer of a vote, only votes from validators will be saved.
 type Pool struct {
-	logger log.Logger
+	service.BaseService
 
 	stores map[EventType]*voteStore // each event type will have a store
 	ticker *time.Ticker             // prune ticker
@@ -154,7 +156,6 @@ func NewVotePool(logger log.Logger, validators []*types.Validator, eventBus *typ
 	validatorVerifier := NewFromValidatorVerifier()
 	validatorVerifier.initValidators(validators)
 	votePool := &Pool{
-		logger:            logger,
 		stores:            stores,
 		ticker:            ticker,
 		cache:             cache,
@@ -162,9 +163,25 @@ func NewVotePool(logger log.Logger, validators []*types.Validator, eventBus *typ
 		blsVerifier:       &BlsSignatureVerifier{},
 		validatorVerifier: validatorVerifier,
 	}
-	go votePool.validatorUpdateRoutine()
-	go votePool.pruneRoutine()
+	votePool.BaseService = *service.NewBaseService(logger, "VotePool", votePool)
+
 	return votePool, nil
+}
+
+// OnStart implements Service.
+func (p *Pool) OnStart() error {
+	if err := p.BaseService.OnStart(); err != nil {
+		return err
+	}
+	go p.validatorUpdateRoutine()
+	go p.pruneVoteRoutine()
+	return nil
+}
+
+// OnStop implements Service.
+func (p *Pool) OnStop() {
+	p.BaseService.OnStop()
+	p.ticker.Stop()
 }
 
 // AddVote implements VotePool.
@@ -196,19 +213,19 @@ func (p *Pool) AddVote(vote *Vote) error {
 	}
 	err = p.eventBus.Publish(eventBusVotePoolUpdates, *vote)
 	if err != nil {
-		p.logger.Error("Cannot publish vote pool event", "err", err.Error())
+		p.Logger.Error("Cannot publish vote pool event", "err", err.Error())
 	}
 	p.cache.Add(vote.Key(), struct{}{})
 	return nil
 }
 
-// GetVotesByEventHash implements VotePool.
-func (p *Pool) GetVotesByEventTypeEventHash(eventType EventType, eventHash []byte) ([]*Vote, error) {
+// GetVotesByEventTypeAndHash implements VotePool.
+func (p *Pool) GetVotesByEventTypeAndHash(eventType EventType, eventHash []byte) ([]*Vote, error) {
 	store, ok := p.stores[eventType]
 	if !ok {
 		return nil, errors.New("unsupported event type")
 	}
-	return store.getVotesByEventHash(eventType, eventHash)
+	return store.getVotesByEventHash(eventHash)
 }
 
 // GetVotesByEventType implements VotePool.
@@ -217,13 +234,13 @@ func (p *Pool) GetVotesByEventType(eventType EventType) ([]*Vote, error) {
 	if !ok {
 		return nil, errors.New("unsupported event type")
 	}
-	return store.getVotesByEventType(eventType)
+	return store.getAllVotes()
 }
 
 // FlushVotes implements VotePool.
 func (p *Pool) FlushVotes() {
-	for _, singleVotePool := range p.stores {
-		singleVotePool.flushVotes()
+	for _, store := range p.stores {
+		store.flushVotes()
 	}
 	p.cache.Purge()
 }
@@ -239,15 +256,17 @@ func (p *Pool) validatorUpdateRoutine() {
 		case validatorData := <-sub.Out():
 			changes := validatorData.Data().(types.EventDataValidatorSetUpdates)
 			p.validatorVerifier.updateValidators(changes.ValidatorUpdates)
-			p.logger.Info("Validators updated", "changes", changes.ValidatorUpdates)
+			p.Logger.Info("Validators updated", "changes", changes.ValidatorUpdates)
 		case <-sub.Cancelled():
+			return
+		case <-p.Quit():
 			return
 		}
 	}
 }
 
-// prune will prune votes at the given intervals.
-func (p *Pool) pruneRoutine() {
+// pruneVoteRoutine will prune votes at the given intervals.
+func (p *Pool) pruneVoteRoutine() {
 	for range p.ticker.C {
 		for _, s := range p.stores {
 			keys := s.pruneVotes()
