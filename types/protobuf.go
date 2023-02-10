@@ -3,6 +3,7 @@ package types
 import (
 	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/crypto"
+	"github.com/tendermint/tendermint/crypto/bls12381"
 	"github.com/tendermint/tendermint/crypto/ed25519"
 	cryptoenc "github.com/tendermint/tendermint/crypto/encoding"
 	"github.com/tendermint/tendermint/crypto/secp256k1"
@@ -15,6 +16,7 @@ import (
 const (
 	ABCIPubKeyTypeEd25519   = ed25519.KeyType
 	ABCIPubKeyTypeSecp256k1 = secp256k1.KeyType
+	ABCIPubKeyTypeBls12381  = bls12381.KeyType
 )
 
 // TODO: Make non-global by allowing for registration of more pubkey types
@@ -22,6 +24,7 @@ const (
 var ABCIPubKeyTypesToNames = map[string]string{
 	ABCIPubKeyTypeEd25519:   ed25519.PubKeyName,
 	ABCIPubKeyTypeSecp256k1: secp256k1.PubKeyName,
+	ABCIPubKeyTypeBls12381:  bls12381.PubKeyName,
 }
 
 //-------------------------------------------------------

@@ -1216,6 +1216,8 @@ func (cs *State) createProposalBlock() (block *types.Block, blockParts *types.Pa
 
 	proposerAddr := cs.privValidatorPubKey.Address()
 
+	//TODO:
+
 	return cs.blockExec.CreateProposalBlock(cs.Height, cs.state, commit, proposerAddr)
 }
 
@@ -1825,6 +1827,7 @@ func (cs *State) defaultSetProposal(proposal *types.Proposal) error {
 
 	p := proposal.ToProto()
 	// Verify signature
+	fmt.Println("pubkey type: ", cs.Validators.GetProposer().PubKey.Type())
 	if !cs.Validators.GetProposer().PubKey.VerifySignature(
 		types.ProposalSignBytes(cs.state.ChainID, p), proposal.Signature,
 	) {
