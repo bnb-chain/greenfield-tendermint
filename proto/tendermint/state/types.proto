@@ -77,4 +77,7 @@ message State {
 
   // the latest AppHash we've received from calling abci.Commit()
   bytes app_hash = 13;
+
+  // last randao mix from the previous block header
+  bytes last_randao_mix = 15;
 }

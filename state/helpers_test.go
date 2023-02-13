@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/tendermint/tendermint/crypto/bls12381"
 	dbm "github.com/tendermint/tm-db"
 
 	abci "github.com/tendermint/tendermint/abci/types"
@@ -39,7 +40,7 @@ func makeAndCommitGoodBlock(
 	privVals map[string]types.PrivValidator,
 	evidence []types.Evidence) (sm.State, types.BlockID, *types.Commit, error) {
 	// A good block passes
-	state, blockID, err := makeAndApplyGoodBlock(state, height, lastCommit, proposerAddr, blockExec, evidence)
+	state, blockID, err := makeAndApplyGoodBlock(state, height, lastCommit, proposerAddr, privVals, blockExec, evidence)
 	if err != nil {
 		return state, types.BlockID{}, nil, err
 	}
@@ -53,8 +54,10 @@ func makeAndCommitGoodBlock(
 }
 
 func makeAndApplyGoodBlock(state sm.State, height int64, lastCommit *types.Commit, proposerAddr []byte,
+	privVals map[string]types.PrivValidator,
 	blockExec *sm.BlockExecutor, evidence []types.Evidence) (sm.State, types.BlockID, error) {
-	block, _ := state.MakeBlock(height, makeTxs(height), lastCommit, evidence, proposerAddr)
+	reveal := makeReveal(state, proposerAddr, privVals, height)
+	block, _ := state.MakeBlock(height, makeTxs(height), lastCommit, evidence, reveal, proposerAddr)
 	if err := blockExec.ValidateBlock(state, block); err != nil {
 		return state, types.BlockID{}, err
 	}
@@ -85,6 +88,21 @@ func makeValidCommit(
 	return types.NewCommit(height, 0, blockID, sigs), nil
 }
 
+func makeReveal(state sm.State, proposerAddr []byte, privVals map[string]types.PrivValidator, height int64) []byte {
+	var proposer types.PrivValidator
+	for _, val := range privVals {
+		pubKey, _ := val.GetPubKey()
+		if bytes.Equal(pubKey.Address().Bytes(), proposerAddr) {
+			proposer = val
+			break
+		}
+	}
+	reveal := &tmproto.Reveal{Height: height}
+	_ = proposer.SignReveal(state.ChainID, reveal)
+
+	return reveal.Signature
+}
+
 // make some bogus txs
 func makeTxs(height int64) (txs []types.Tx) {
 	for i := 0; i < nTxsPerBlock; i++ {
@@ -97,8 +115,9 @@ func makeState(nVals, height int) (sm.State, dbm.DB, map[string]types.PrivValida
 	vals := make([]types.GenesisValidator, nVals)
 	privVals := make(map[string]types.PrivValidator, nVals)
 	for i := 0; i < nVals; i++ {
-		secret := []byte(fmt.Sprintf("test%d", i))
-		pk := ed25519.GenPrivKeyFromSecret(secret)
+		//secret := []byte(fmt.Sprintf("test%d", i))
+		//pk := ed25519.GenPrivKeyFromSecret(secret)
+		pk := bls12381.GenPrivKey()
 		valAddr := pk.PubKey().Address()
 		vals[i] = types.GenesisValidator{
 			Address: valAddr,
@@ -134,10 +153,12 @@ func makeState(nVals, height int) (sm.State, dbm.DB, map[string]types.PrivValida
 }
 
 func makeBlock(state sm.State, height int64) *types.Block {
+	//TODO:fix
 	block, _ := state.MakeBlock(
 		height,
 		makeTxs(state.LastBlockHeight),
 		new(types.Commit),
+		nil,
 		nil,
 		state.Validators.GetProposer().Address,
 	)

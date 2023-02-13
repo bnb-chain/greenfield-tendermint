@@ -8,7 +8,7 @@ import (
 // RandVal creates one random validator, with a key derived
 // from the input value
 func RandVal(i int) types.ValidatorUpdate {
-	pubkey := tmrand.Bytes(32)
+	pubkey := tmrand.Bytes(48)
 	power := tmrand.Uint16() + 1
 	v := types.UpdateValidator(pubkey, int64(power), "")
 	return v

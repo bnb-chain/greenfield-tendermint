@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/gogo/protobuf/proto"
+	"github.com/tendermint/tendermint/crypto/tmhash"
 
 	tmstate "github.com/tendermint/tendermint/proto/tendermint/state"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
@@ -78,6 +79,8 @@ type State struct {
 
 	// the latest AppHash we've received from calling abci.Commit()
 	AppHash []byte
+
+	LastRandaoMix []byte
 }
 
 // Copy makes a copy of the State for mutating.
@@ -102,6 +105,8 @@ func (state State) Copy() State {
 		AppHash: state.AppHash,
 
 		LastResultsHash: state.LastResultsHash,
+
+		LastRandaoMix: state.LastRandaoMix,
 	}
 }
 
@@ -170,6 +175,7 @@ func (state *State) ToProto() (*tmstate.State, error) {
 	sm.LastHeightConsensusParamsChanged = state.LastHeightConsensusParamsChanged
 	sm.LastResultsHash = state.LastResultsHash
 	sm.AppHash = state.AppHash
+	sm.LastRandaoMix = state.LastRandaoMix
 
 	return sm, nil
 }
@@ -221,7 +227,7 @@ func FromProto(pb *tmstate.State) (*State, error) { //nolint:golint
 	state.LastHeightConsensusParamsChanged = pb.LastHeightConsensusParamsChanged
 	state.LastResultsHash = pb.LastResultsHash
 	state.AppHash = pb.AppHash
-
+	state.LastRandaoMix = pb.LastRandaoMix
 	return state, nil
 }
 
@@ -236,6 +242,7 @@ func (state State) MakeBlock(
 	txs []types.Tx,
 	commit *types.Commit,
 	evidence []types.Evidence,
+	randaoReveal []byte,
 	proposerAddress []byte,
 ) (*types.Block, *types.PartSet) {
 	// Build base block with block data.
@@ -249,12 +256,24 @@ func (state State) MakeBlock(
 		timestamp = MedianTime(commit, state.LastValidators)
 	}
 
+	// Calculate randao mix.
+	randaoMix := make([]byte, tmhash.Size)
+	copy(randaoMix, state.LastRandaoMix)
+	if len(randaoMix) == 0 { //first block
+		randaoMix = make([]byte, tmhash.Size)
+	}
+	revealHash := tmhash.Sum(randaoReveal)
+	for i := range randaoMix {
+		randaoMix[i] = randaoMix[i] ^ revealHash[i]
+	}
+
 	// Fill rest of header with state data.
 	block.Header.Populate(
 		state.Version.Consensus, state.ChainID,
 		timestamp, state.LastBlockID,
 		state.Validators.Hash(), state.NextValidators.Hash(),
 		types.HashConsensusParams(state.ConsensusParams), state.AppHash, state.LastResultsHash,
+		randaoMix, randaoReveal,
 		proposerAddress,
 	)
 

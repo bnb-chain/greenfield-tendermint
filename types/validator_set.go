@@ -2,6 +2,7 @@ package types
 
 import (
 	"bytes"
+	"encoding/binary"
 	"errors"
 	"fmt"
 	"math"
@@ -10,6 +11,7 @@ import (
 	"strings"
 
 	"github.com/tendermint/tendermint/crypto/merkle"
+	"github.com/tendermint/tendermint/crypto/tmhash"
 	tmmath "github.com/tendermint/tendermint/libs/math"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 )
@@ -708,6 +710,39 @@ func (vals *ValidatorSet) VerifyCommit(chainID string, blockID BlockID,
 
 	if got, needed := talliedVotingPower, votingPowerNeeded; got <= needed {
 		return ErrNotEnoughVotingPowerSigned{Got: got, Needed: needed}
+	}
+
+	return nil
+}
+
+// VerifyRandao verify the randao reveal and randao mix. The proposer should be in the list of validators, which already checked.
+func (vals *ValidatorSet) VerifyRandao(chainId string, lastRandaoMix []byte, height int64, proposerAddress Address, randaoReveal, randaoMix []byte) error {
+	expectedMix := make([]byte, tmhash.Size)
+	revealHash := tmhash.Sum(randaoReveal)
+	if len(lastRandaoMix) == 0 {
+		lastRandaoMix = make([]byte, tmhash.Size)
+	}
+	for i := range expectedMix {
+		expectedMix[i] = lastRandaoMix[i] ^ revealHash[i]
+	}
+
+	if !bytes.Equal(expectedMix, randaoMix) {
+		return fmt.Errorf("wrong randao mix, expected: %X, actual: %X ", expectedMix, randaoMix)
+	}
+
+	var proposer *Validator
+	for _, val := range vals.Validators {
+		if bytes.Equal(val.Address, proposerAddress) {
+			proposer = val
+			break
+		}
+	}
+	chainIdBytes := tmhash.Sum([]byte(chainId + "/"))
+	heightBytes := make([]byte, 8)
+	binary.BigEndian.PutUint64(heightBytes, uint64(height))
+	if !proposer.PubKey.VerifySignature(append(chainIdBytes, heightBytes...), randaoReveal) {
+		fmt.Errorf("wrong randao reveal, proposer: %s, reveal: %X", proposer.Address, randaoReveal)
+		return fmt.Errorf("wrong randao reveal, proposer: %s, reveal: %X", proposer.Address, randaoReveal)
 	}
 
 	return nil

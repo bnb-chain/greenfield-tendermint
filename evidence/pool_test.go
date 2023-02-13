@@ -82,7 +82,7 @@ func TestEvidencePoolBasic(t *testing.T) {
 	next := pool.EvidenceFront()
 	assert.Equal(t, ev, next.Value.(types.Evidence))
 
-	const evidenceBytes int64 = 372
+	const evidenceBytes int64 = 372 + 2*32 // bls signature length is 96
 	evs, size = pool.PendingEvidence(evidenceBytes)
 	assert.Equal(t, 1, len(evs))
 	assert.Equal(t, evidenceBytes, size) // check that the size of the single evidence in bytes is correct
@@ -405,7 +405,7 @@ func initializeBlockStore(db dbm.DB, state sm.State, valAddr []byte) *store.Bloc
 
 	for i := int64(1); i <= state.LastBlockHeight; i++ {
 		lastCommit := makeCommit(i-1, valAddr)
-		block, _ := state.MakeBlock(i, []types.Tx{}, lastCommit, nil,
+		block, _ := state.MakeBlock(i, []types.Tx{}, lastCommit, nil, nil,
 			state.Validators.GetProposer().Address)
 		block.Header.Time = defaultEvidenceTime.Add(time.Duration(i) * time.Minute)
 		block.Header.Version = tmversion.Consensus{Block: version.BlockProtocol, App: 1}

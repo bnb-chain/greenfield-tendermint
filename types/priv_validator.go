@@ -2,11 +2,14 @@ package types
 
 import (
 	"bytes"
+	"encoding/binary"
 	"errors"
 	"fmt"
 
 	"github.com/tendermint/tendermint/crypto"
+	"github.com/tendermint/tendermint/crypto/bls12381"
 	"github.com/tendermint/tendermint/crypto/ed25519"
+	"github.com/tendermint/tendermint/crypto/tmhash"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 )
 
@@ -17,6 +20,7 @@ type PrivValidator interface {
 
 	SignVote(chainID string, vote *tmproto.Vote) error
 	SignProposal(chainID string, proposal *tmproto.Proposal) error
+	SignReveal(chainID string, reveal *tmproto.Reveal) error
 }
 
 type PrivValidatorsByAddress []PrivValidator
@@ -54,7 +58,7 @@ type MockPV struct {
 }
 
 func NewMockPV() MockPV {
-	return MockPV{ed25519.GenPrivKey(), false, false}
+	return MockPV{bls12381.GenPrivKey(), false, false}
 }
 
 // NewMockPVWithParams allows one to create a MockPV instance, but with finer
@@ -101,6 +105,18 @@ func (pv MockPV) SignProposal(chainID string, proposal *tmproto.Proposal) error 
 	return nil
 }
 
+func (pv MockPV) SignReveal(chainID string, reveal *tmproto.Reveal) error {
+	chainIdBytes := tmhash.Sum([]byte(chainID + "/"))
+	heightBytes := make([]byte, 8)
+	binary.BigEndian.PutUint64(heightBytes, uint64(reveal.Height))
+	sig, err := pv.PrivKey.Sign(append(chainIdBytes, heightBytes...))
+	if err != nil {
+		return fmt.Errorf("error signing reveal: %v", err)
+	}
+	reveal.Signature = sig
+	return nil
+}
+
 func (pv MockPV) ExtractIntoValidator(votingPower int64) *Validator {
 	pubKey, _ := pv.GetPubKey()
 	return &Validator{
@@ -135,6 +151,10 @@ func (pv *ErroringMockPV) SignVote(chainID string, vote *tmproto.Vote) error {
 
 // Implements PrivValidator.
 func (pv *ErroringMockPV) SignProposal(chainID string, proposal *tmproto.Proposal) error {
+	return ErroringMockPVErr
+}
+
+func (pv *ErroringMockPV) SignReveal(chainID string, reveal *tmproto.Reveal) error {
 	return ErroringMockPVErr
 }
 

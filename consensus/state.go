@@ -11,7 +11,6 @@ import (
 	"time"
 
 	"github.com/gogo/protobuf/proto"
-
 	cfg "github.com/tendermint/tendermint/config"
 	cstypes "github.com/tendermint/tendermint/consensus/types"
 	"github.com/tendermint/tendermint/crypto"
@@ -1207,6 +1206,15 @@ func (cs *State) createProposalBlock() (block *types.Block, blockParts *types.Pa
 		return
 	}
 
+	reveal := &tmproto.Reveal{
+		Height:    cs.Height,
+		Signature: nil,
+	}
+	if err := cs.privValidator.SignReveal(cs.state.ChainID, reveal); err != nil {
+		cs.Logger.Error("propose step; cannot generate randao reveal", err, err)
+		return
+	}
+
 	if cs.privValidatorPubKey == nil {
 		// If this node is a validator & proposer in the current round, it will
 		// miss the opportunity to create a block.
@@ -1216,9 +1224,7 @@ func (cs *State) createProposalBlock() (block *types.Block, blockParts *types.Pa
 
 	proposerAddr := cs.privValidatorPubKey.Address()
 
-	//TODO:
-
-	return cs.blockExec.CreateProposalBlock(cs.Height, cs.state, commit, proposerAddr)
+	return cs.blockExec.CreateProposalBlock(cs.Height, cs.state, commit, reveal.Signature, proposerAddr)
 }
 
 // Enter: `timeoutPropose` after entering Propose.
@@ -1827,7 +1833,6 @@ func (cs *State) defaultSetProposal(proposal *types.Proposal) error {
 
 	p := proposal.ToProto()
 	// Verify signature
-	fmt.Println("pubkey type: ", cs.Validators.GetProposer().PubKey.Type())
 	if !cs.Validators.GetProposer().PubKey.VerifySignature(
 		types.ProposalSignBytes(cs.state.ChainID, p), proposal.Signature,
 	) {

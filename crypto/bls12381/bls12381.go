@@ -98,9 +98,6 @@ func (pubKey PubKey) Bytes() []byte {
 }
 
 func (pubKey PubKey) VerifySignature(msg []byte, sig []byte) bool {
-	fmt.Println("bls12381")
-	fmt.Printf("msg: %x \n", msg)
-	fmt.Printf("sig: %x \n", sig)
 	// make sure we use the same algorithm to sign
 	if len(sig) != SignatureSize {
 		return false
