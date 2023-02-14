@@ -1,12 +1,14 @@
 package node
 
 import (
+	"encoding/binary"
 	"errors"
 	"fmt"
 	"os"
 
 	"github.com/tendermint/tendermint/crypto"
-	"github.com/tendermint/tendermint/crypto/ed25519"
+	"github.com/tendermint/tendermint/crypto/bls12381"
+	"github.com/tendermint/tendermint/crypto/tmhash"
 	tmbytes "github.com/tendermint/tendermint/libs/bytes"
 	tmjson "github.com/tendermint/tendermint/libs/json"
 	tmos "github.com/tendermint/tendermint/libs/os"
@@ -152,7 +154,7 @@ type FilePV struct {
 // GenFilePV generates a new validator with randomly generated private key
 // and sets the filePaths, but does not call Save().
 func GenFilePV(keyFilePath, stateFilePath string) *FilePV {
-	privKey := ed25519.GenPrivKey()
+	privKey := bls12381.GenPrivKey()
 
 	return &FilePV{
 		Key: FilePVKey{
@@ -259,6 +261,18 @@ func (pv *FilePV) SignProposal(chainID string, proposal *tmproto.Proposal) error
 	if err := pv.signProposal(chainID, proposal); err != nil {
 		return fmt.Errorf("error signing proposal: %v", err)
 	}
+	return nil
+}
+
+func (pv *FilePV) SignReveal(chainID string, reveal *tmproto.Reveal) error {
+	chainIDBytes := tmhash.Sum([]byte(chainID + "/"))
+	heightBytes := make([]byte, 8)
+	binary.BigEndian.PutUint64(heightBytes, uint64(reveal.Height))
+	sig, err := pv.Key.PrivKey.Sign(append(chainIDBytes, heightBytes...))
+	if err != nil {
+		return fmt.Errorf("error signing reveal: %v", err)
+	}
+	reveal.Signature = sig
 	return nil
 }
 

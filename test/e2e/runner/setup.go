@@ -16,8 +16,9 @@ import (
 
 	"github.com/BurntSushi/toml"
 
+	"github.com/tendermint/tendermint/crypto/bls12381"
+
 	"github.com/tendermint/tendermint/config"
-	"github.com/tendermint/tendermint/crypto/ed25519"
 	"github.com/tendermint/tendermint/libs/log"
 	"github.com/tendermint/tendermint/p2p"
 	"github.com/tendermint/tendermint/privval"
@@ -114,7 +115,7 @@ func Setup(testnet *e2e.Testnet, infp infra.Provider) error {
 
 		// Set up a dummy validator. Tendermint requires a file PV even when not used, so we
 		// give it a dummy such that it will fail if it actually tries to use it.
-		(privval.NewFilePV(ed25519.GenPrivKey(),
+		(privval.NewFilePV(bls12381.GenPrivKey(),
 			filepath.Join(nodeDir, PrivvalDummyKeyFile),
 			filepath.Join(nodeDir, PrivvalDummyStateFile),
 		)).Save()

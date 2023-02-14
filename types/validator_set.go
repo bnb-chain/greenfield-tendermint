@@ -716,7 +716,7 @@ func (vals *ValidatorSet) VerifyCommit(chainID string, blockID BlockID,
 }
 
 // VerifyRandao verify the randao reveal and randao mix. The proposer should be in the list of validators, which already checked.
-func (vals *ValidatorSet) VerifyRandao(chainId string, lastRandaoMix []byte, height int64, proposerAddress Address, randaoReveal, randaoMix []byte) error {
+func (vals *ValidatorSet) VerifyRandao(chainID string, lastRandaoMix []byte, height int64, proposerAddress Address, randaoReveal, randaoMix []byte) error {
 	expectedMix := make([]byte, tmhash.Size)
 	revealHash := tmhash.Sum(randaoReveal)
 	if len(lastRandaoMix) == 0 {
@@ -737,12 +737,11 @@ func (vals *ValidatorSet) VerifyRandao(chainId string, lastRandaoMix []byte, hei
 			break
 		}
 	}
-	chainIdBytes := tmhash.Sum([]byte(chainId + "/"))
+	chainIDBytes := tmhash.Sum([]byte(chainID + "/"))
 	heightBytes := make([]byte, 8)
 	binary.BigEndian.PutUint64(heightBytes, uint64(height))
-	if !proposer.PubKey.VerifySignature(append(chainIdBytes, heightBytes...), randaoReveal) {
-		fmt.Errorf("wrong randao reveal, proposer: %s, reveal: %X", proposer.Address, randaoReveal)
-		return fmt.Errorf("wrong randao reveal, proposer: %s, reveal: %X", proposer.Address, randaoReveal)
+	if !proposer.PubKey.VerifySignature(append(chainIDBytes, heightBytes...), randaoReveal) {
+		return fmt.Errorf("wrong randao reveal, proposer: %s, reveal: %X, len: %d, height: %d", proposer.Address, randaoReveal, len(randaoReveal), height)
 	}
 
 	return nil

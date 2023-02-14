@@ -1212,7 +1212,7 @@ func (cs *State) createProposalBlock() (block *types.Block, blockParts *types.Pa
 		Signature: nil,
 	}
 	if err := cs.privValidator.SignReveal(cs.state.ChainID, reveal); err != nil {
-		cs.Logger.Error("propose step; cannot generate randao reveal", err, err)
+		cs.Logger.Error("propose step; cannot generate randao reveal", "err", err)
 		return
 	}
 

@@ -1276,6 +1276,15 @@ func (cs *State) createProposalBlock() (block *types.Block, blockParts *types.Pa
 		return
 	}
 
+	reveal := &tmproto.Reveal{
+		Height:    cs.Height,
+		Signature: nil,
+	}
+	if err := cs.privValidator.SignReveal(cs.state.ChainID, reveal); err != nil {
+		cs.Logger.Error("propose step; cannot generate randao reveal", "err", err)
+		return
+	}
+
 	if cs.privValidatorPubKey == nil {
 		// If this node is a validator & proposer in the current round, it will
 		// miss the opportunity to create a block.
@@ -1284,7 +1293,7 @@ func (cs *State) createProposalBlock() (block *types.Block, blockParts *types.Pa
 	}
 	proposerAddr := cs.privValidatorPubKey.Address()
 
-	return cs.blockExec.CreateProposalBlock(cs.Height, cs.state, commit, proposerAddr)
+	return cs.blockExec.CreateProposalBlock(cs.Height, cs.state, commit, nil, proposerAddr)
 }
 
 // Enter: any +2/3 prevotes at next round.

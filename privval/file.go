@@ -271,10 +271,10 @@ func (pv *FilePV) SignProposal(chainID string, proposal *tmproto.Proposal) error
 }
 
 func (pv *FilePV) SignReveal(chainID string, reveal *tmproto.Reveal) error {
-	chainIdBytes := tmhash.Sum([]byte(chainID + "/"))
+	chainIDBytes := tmhash.Sum([]byte(chainID + "/"))
 	heightBytes := make([]byte, 8)
 	binary.BigEndian.PutUint64(heightBytes, uint64(reveal.Height))
-	sig, err := pv.Key.PrivKey.Sign(append(chainIdBytes, heightBytes...))
+	sig, err := pv.Key.PrivKey.Sign(append(chainIDBytes, heightBytes...))
 	if err != nil {
 		return fmt.Errorf("error signing reveal: %v", err)
 	}

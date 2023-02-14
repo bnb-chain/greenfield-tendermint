@@ -12,6 +12,7 @@ import (
 	"strings"
 
 	"github.com/tendermint/tendermint/crypto"
+	"github.com/tendermint/tendermint/crypto/bls12381"
 	"github.com/tendermint/tendermint/crypto/ed25519"
 	"github.com/tendermint/tendermint/crypto/secp256k1"
 	rpchttp "github.com/tendermint/tendermint/rpc/client/http"
@@ -497,8 +498,10 @@ func (g *keyGenerator) Generate(keyType string) crypto.PrivKey {
 	switch keyType {
 	case "secp256k1":
 		return secp256k1.GenPrivKeySecp256k1(seed)
-	case "", "ed25519":
+	case "ed25519":
 		return ed25519.GenPrivKeyFromSecret(seed)
+	case "", "bls12381":
+		return bls12381.GenPrivKey()
 	default:
 		panic("KeyType not supported") // should not make it this far
 	}
