@@ -2,6 +2,7 @@ package http
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"math/rand"
 	"regexp"
@@ -75,6 +76,11 @@ func (p *http) LightBlock(ctx context.Context, height int64) (*types.LightBlock,
 	sh, err := p.signedHeader(ctx, h)
 	if err != nil {
 		return nil, err
+	}
+
+	//TODO: fix it
+	if sh.Header == nil {
+		return nil, errors.New("nil header")
 	}
 
 	if height != 0 && sh.Height != height {

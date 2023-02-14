@@ -6,6 +6,7 @@ import (
 	"io"
 	"math/rand"
 	"net"
+	"os"
 	"path/filepath"
 	"sort"
 	"strconv"
@@ -15,6 +16,8 @@ import (
 	"github.com/tendermint/tendermint/crypto/bls12381"
 	"github.com/tendermint/tendermint/crypto/ed25519"
 	"github.com/tendermint/tendermint/crypto/secp256k1"
+	"github.com/tendermint/tendermint/crypto/tmhash"
+	tmos "github.com/tendermint/tendermint/libs/os"
 	rpchttp "github.com/tendermint/tendermint/rpc/client/http"
 	mcs "github.com/tendermint/tendermint/test/maverick/consensus"
 )
@@ -95,7 +98,8 @@ type Node struct {
 // random seed to generate e.g. keys.
 func LoadTestnet(manifest Manifest, fname string, ifd InfrastructureData) (*Testnet, error) {
 	dir := strings.TrimSuffix(fname, filepath.Ext(fname))
-	keyGen := newKeyGenerator(randomSeed)
+	fmt.Println("dir=", dir)
+	keyGen := newKeyGenerator(randomSeed, dir)
 	proxyPortGen := newPortGenerator(proxyPortFirst)
 	_, ipNet, err := net.ParseCIDR(ifd.Network)
 	if err != nil {
@@ -140,7 +144,7 @@ func LoadTestnet(manifest Manifest, fname string, ifd InfrastructureData) (*Test
 		node := &Node{
 			Name:             name,
 			Testnet:          testnet,
-			PrivvalKey:       keyGen.Generate(manifest.KeyType),
+			PrivvalKey:       keyGen.GenerateBlsKey(manifest.KeyType, name),
 			NodeKey:          keyGen.Generate("ed25519"),
 			IP:               ind.IPAddress,
 			ProxyPort:        proxyPortGen.Next(),
@@ -482,7 +486,7 @@ type keyGenerator struct {
 	random *rand.Rand
 }
 
-func newKeyGenerator(seed int64) *keyGenerator {
+func newKeyGenerator(seed int64, dir string) *keyGenerator {
 	return &keyGenerator{
 		random: rand.New(rand.NewSource(seed)), //nolint:gosec
 	}
@@ -500,8 +504,36 @@ func (g *keyGenerator) Generate(keyType string) crypto.PrivKey {
 		return secp256k1.GenPrivKeySecp256k1(seed)
 	case "ed25519":
 		return ed25519.GenPrivKeyFromSecret(seed)
+	default:
+		panic("KeyType not supported") // should not make it this far
+	}
+}
+
+// GenerateBlsKey will generate keys and save them to file for later reuse.
+// The reason of not using Generate is that there is no similar method like GenPrivKeySecp256k1 for bls.
+func (g *keyGenerator) GenerateBlsKey(keyType string, name string) crypto.PrivKey {
+	switch keyType {
 	case "", "bls12381":
-		return bls12381.GenPrivKey()
+		tmpDir := "/tmp/tm/keys/"
+		if err := os.MkdirAll(tmpDir, os.ModePerm); err != nil {
+			panic(err)
+		}
+		file := tmpDir + fmt.Sprintf("%x", tmhash.Sum([]byte(name)))
+		if tmos.FileExists(file) {
+			key, err := tmos.ReadFile(file)
+			if err != nil {
+				panic(err)
+			}
+			//fmt.Printf("read key file: %s \t %s \t %s \n", name, bls12381.PrivKey(key).PubKey().Address(), file)
+			return bls12381.PrivKey(key)
+		}
+		key := bls12381.GenPrivKey()
+		if err := tmos.WriteFile(file, key.Bytes(), 0644); err != nil {
+			panic(err)
+		}
+		//fmt.Printf("write key file: %s \t %s \t %s \n", name, key.PubKey().Address(), file)
+		return key
+
 	default:
 		panic("KeyType not supported") // should not make it this far
 	}
