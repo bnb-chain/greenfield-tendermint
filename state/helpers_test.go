@@ -154,7 +154,6 @@ func makeState(nVals, height int) (sm.State, dbm.DB, map[string]types.PrivValida
 }
 
 func makeBlock(state sm.State, height int64) *types.Block {
-	//TODO:fix
 	block, _ := state.MakeBlock(
 		height,
 		makeTxs(state.LastBlockHeight),

@@ -636,7 +636,6 @@ func NewCommitSigForBlock(signature []byte, valAddr Address, ts time.Time) Commi
 
 func MaxCommitBytes(valCount int) int64 {
 	// From the repeated commit sig field
-	//TODO: fix
 	var protoEncodingOverhead int64 = 3
 	return MaxCommitOverheadBytes + ((MaxCommitSigBytes + protoEncodingOverhead) * int64(valCount))
 }

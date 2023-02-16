@@ -132,6 +132,7 @@ func (sc *SignerClient) SignProposal(chainID string, proposal *tmproto.Proposal)
 	return nil
 }
 
+// SignReveal signs a randao reveal, along with the chainID. Implements PrivValidator.
 func (sc *SignerClient) SignReveal(chainID string, reveal *tmproto.Reveal) error {
 	response, err := sc.endpoint.SendRequest(mustWrapMsg(&privvalproto.SignRevealRequest{Reveal: reveal, ChainId: chainID}))
 	if err != nil {

@@ -105,6 +105,7 @@ func (pv MockPV) SignProposal(chainID string, proposal *tmproto.Proposal) error 
 	return nil
 }
 
+// SignReveal signs a randao reveal, along with the chainID. Implements PrivValidator.
 func (pv MockPV) SignReveal(chainID string, reveal *tmproto.Reveal) error {
 	chainIDBytes := tmhash.Sum([]byte(chainID + "/"))
 	heightBytes := make([]byte, 8)
@@ -154,6 +155,7 @@ func (pv *ErroringMockPV) SignProposal(chainID string, proposal *tmproto.Proposa
 	return ErroringMockPVErr
 }
 
+// SignReveal signs a randao reveal, along with the chainID. Implements PrivValidator.
 func (pv *ErroringMockPV) SignReveal(chainID string, reveal *tmproto.Reveal) error {
 	return ErroringMockPVErr
 }

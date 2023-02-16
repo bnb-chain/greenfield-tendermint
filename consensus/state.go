@@ -1207,10 +1207,7 @@ func (cs *State) createProposalBlock() (block *types.Block, blockParts *types.Pa
 		return
 	}
 
-	reveal := &tmproto.Reveal{
-		Height:    cs.Height,
-		Signature: nil,
-	}
+	reveal := &tmproto.Reveal{Height: cs.Height}
 	if err := cs.privValidator.SignReveal(cs.state.ChainID, reveal); err != nil {
 		cs.Logger.Error("propose step; cannot generate randao reveal", "err", err)
 		return

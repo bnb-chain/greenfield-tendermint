@@ -264,6 +264,7 @@ func (pv *FilePV) SignProposal(chainID string, proposal *tmproto.Proposal) error
 	return nil
 }
 
+// SignReveal signs a randao reveal, along with the chainID. Implements PrivValidator.
 func (pv *FilePV) SignReveal(chainID string, reveal *tmproto.Reveal) error {
 	chainIDBytes := tmhash.Sum([]byte(chainID + "/"))
 	heightBytes := make([]byte, 8)
