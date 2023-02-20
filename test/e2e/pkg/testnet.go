@@ -497,7 +497,7 @@ func (g *keyGenerator) Generate(keyType string) crypto.PrivKey {
 	switch keyType {
 	case "secp256k1":
 		return secp256k1.GenPrivKeySecp256k1(seed)
-	case "ed25519":
+	case "", "ed25519":
 		return ed25519.GenPrivKeyFromSecret(seed)
 	default:
 		panic("KeyType not supported") // should not make it this far

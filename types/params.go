@@ -50,7 +50,7 @@ func DefaultEvidenceParams() tmproto.EvidenceParams {
 }
 
 // DefaultValidatorParams returns a default ValidatorParams, which allows
-// only bls12381 pubkeys.
+// only ed25519 pubkeys.
 func DefaultValidatorParams() tmproto.ValidatorParams {
 	return tmproto.ValidatorParams{
 		PubKeyTypes: []string{ABCIPubKeyTypeEd25519},
