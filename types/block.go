@@ -9,9 +9,9 @@ import (
 
 	"github.com/gogo/protobuf/proto"
 	gogotypes "github.com/gogo/protobuf/types"
-	"github.com/tendermint/tendermint/crypto/ed25519"
 
 	"github.com/tendermint/tendermint/crypto"
+	"github.com/tendermint/tendermint/crypto/ed25519"
 	"github.com/tendermint/tendermint/crypto/merkle"
 	"github.com/tendermint/tendermint/crypto/tmhash"
 	"github.com/tendermint/tendermint/libs/bits"
@@ -351,8 +351,7 @@ type Header struct {
 	ProposerAddress Address          `json:"proposer_address"` // original proposer of the block
 
 	// randao info
-	RandaoMix    tmbytes.HexBytes `json:"randao_mix"`
-	RandaoReveal tmbytes.HexBytes `json:"randao_reveal"`
+	RandaoMix tmbytes.HexBytes `json:"randao_mix"`
 }
 
 // Populate the Header with state-derived data.
@@ -376,7 +375,6 @@ func (h *Header) Populate(
 	h.LastResultsHash = lastResultsHash
 	h.ProposerAddress = proposerAddress
 	h.RandaoMix = randaoMix
-	h.RandaoReveal = randaoReveal
 }
 
 // ValidateBasic performs stateless validation on a Header returning an error
@@ -436,15 +434,9 @@ func (h Header) ValidateBasic() error {
 		return fmt.Errorf("wrong LastResultsHash: %v", err)
 	}
 
-	// Validate randao mix
-	if err := ValidateHash(h.RandaoMix); err != nil {
-		return fmt.Errorf("wrong RandaoMix, len: %d, err: %s", len(h.RandaoMix), err.Error())
-	}
-
-	// Validate randao reveal
-	if len(h.RandaoReveal) > 0 && len(h.RandaoReveal) != ed25519.SignatureSize {
-		return fmt.Errorf("wrong RandaoReveal: expected length %d, actual length %d",
-			ed25519.SignatureSize, len(h.RandaoReveal))
+	// Validate randao mix.
+	if len(h.RandaoMix) > 0 && len(h.RandaoMix) != ed25519.SignatureSize {
+		return fmt.Errorf("wrong RandaoMix, length is wrong")
 	}
 
 	return nil
@@ -491,7 +483,6 @@ func (h *Header) Hash() tmbytes.HexBytes {
 		cdcEncode(h.EvidenceHash),
 		cdcEncode(h.ProposerAddress),
 		cdcEncode(h.RandaoMix),
-		cdcEncode(h.RandaoReveal),
 	})
 }
 
@@ -555,7 +546,6 @@ func (h *Header) ToProto() *tmproto.Header {
 		LastCommitHash:     h.LastCommitHash,
 		ProposerAddress:    h.ProposerAddress,
 		RandaoMix:          h.RandaoMix,
-		RandaoReveal:       h.RandaoReveal,
 	}
 }
 
@@ -589,7 +579,6 @@ func HeaderFromProto(ph *tmproto.Header) (Header, error) {
 	h.LastCommitHash = ph.LastCommitHash
 	h.ProposerAddress = ph.ProposerAddress
 	h.RandaoMix = ph.RandaoMix
-	h.RandaoReveal = ph.RandaoReveal
 
 	return *h, h.ValidateBasic()
 }
@@ -611,9 +600,9 @@ const (
 const (
 	// Max size of commit without any commitSigs -> 82 for BlockID, 8 for Height, 4 for Round.
 	MaxCommitOverheadBytes int64 = 94
-	// Commit sig size is made up of 96 bytes for the signature, 20 bytes for the address,
+	// Commit sig size is made up of 64 bytes for the signature, 20 bytes for the address,
 	// 1 byte for the flag and 14 bytes for the timestamp
-	MaxCommitSigBytes int64 = 141
+	MaxCommitSigBytes int64 = 109
 )
 
 // CommitSig is a part of the Vote included in a Commit.
@@ -636,7 +625,7 @@ func NewCommitSigForBlock(signature []byte, valAddr Address, ts time.Time) Commi
 
 func MaxCommitBytes(valCount int) int64 {
 	// From the repeated commit sig field
-	var protoEncodingOverhead int64 = 3
+	var protoEncodingOverhead int64 = 2
 	return MaxCommitOverheadBytes + ((MaxCommitSigBytes + protoEncodingOverhead) * int64(valCount))
 }
 

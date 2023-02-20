@@ -132,7 +132,7 @@ func TestBlockMakePartSetWithEvidence(t *testing.T) {
 
 	partSet := MakeBlock(h, []Tx{Tx("Hello World")}, commit, evList).MakePartSet(512)
 	assert.NotNil(t, partSet)
-	assert.EqualValues(t, 5, partSet.Total())
+	assert.EqualValues(t, 4, partSet.Total())
 }
 
 func TestBlockHashesTo(t *testing.T) {
@@ -324,8 +324,7 @@ func TestHeaderHash(t *testing.T) {
 			EvidenceHash:       tmhash.Sum([]byte("evidence_hash")),
 			ProposerAddress:    crypto.AddressHash([]byte("proposer_address")),
 			RandaoMix:          tmhash.Sum([]byte("random_mix")),
-			RandaoReveal:       tmhash.Sum([]byte("random_reveal")),
-		}, hexBytesFromString("2CB7ED8A8AEBF235F6A51E3C72083E6A62472B733D9C35102DFB4497C863E03F")},
+		}, hexBytesFromString("9C301304E5EC0CFDE729FE6DE7DD2D4EA7D0B1B8546DB07CF9A8B4811BE47334")},
 		{"nil header yields nil", nil, nil},
 		{"nil ValidatorsHash yields nil", &Header{
 			Version:            tmversion.Consensus{Block: 1, App: 2},
@@ -455,10 +454,10 @@ func TestBlockMaxDataBytes(t *testing.T) {
 		0: {-10, 1, 0, true, 0},
 		1: {10, 1, 0, true, 0},
 		2: {841, 1, 0, true, 0},
-		3: {875, 1, 0, false, 0},
-		4: {876, 1, 0, false, 1},
-		5: {1020, 2, 0, false, 1},
-		6: {1119, 2, 100, false, 0},
+		3: {842, 1, 0, false, 0},
+		4: {843, 1, 0, false, 1},
+		5: {954, 2, 0, false, 1},
+		6: {1053, 2, 100, false, 0},
 	}
 
 	for i, tc := range testCases {
@@ -486,8 +485,8 @@ func TestBlockMaxDataBytesNoEvidence(t *testing.T) {
 		0: {-10, 1, true, 0},
 		1: {10, 1, true, 0},
 		2: {841, 1, true, 0},
-		3: {875, 1, false, 0},
-		4: {876, 1, false, 1},
+		3: {842, 1, false, 0},
+		4: {843, 1, false, 1},
 	}
 
 	for i, tc := range testCases {

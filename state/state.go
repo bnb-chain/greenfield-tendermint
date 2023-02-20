@@ -9,7 +9,7 @@ import (
 
 	"github.com/gogo/protobuf/proto"
 
-	"github.com/tendermint/tendermint/crypto/tmhash"
+	"github.com/tendermint/tendermint/crypto/ed25519"
 
 	tmstate "github.com/tendermint/tendermint/proto/tendermint/state"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
@@ -258,14 +258,16 @@ func (state State) MakeBlock(
 	}
 
 	// Calculate randao mix.
-	randaoMix := make([]byte, tmhash.Size)
+	randaoMix := make([]byte, ed25519.SignatureSize)
 	copy(randaoMix, state.LastRandaoMix)
-	if len(randaoMix) == 0 { //first block
-		randaoMix = make([]byte, tmhash.Size)
+	if len(randaoMix) == 0 {
+		randaoMix = make([]byte, ed25519.SignatureSize)
 	}
-	revealHash := tmhash.Sum(randaoReveal)
+	if len(randaoReveal) == 0 {
+		randaoReveal = make([]byte, ed25519.SignatureSize)
+	}
 	for i := range randaoMix {
-		randaoMix[i] = randaoMix[i] ^ revealHash[i]
+		randaoMix[i] = randaoMix[i] ^ randaoReveal[i]
 	}
 
 	// Fill rest of header with state data.

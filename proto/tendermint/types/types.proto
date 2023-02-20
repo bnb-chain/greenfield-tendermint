@@ -81,8 +81,7 @@ message Header {
   bytes proposer_address = 14;  // original proposer of the block
 
   // randao info
-  bytes randao_mix    = 15;  // randao mix result
-  bytes randao_reveal = 16;  // randao reveal for the block
+  bytes randao_mix    = 15;  // randao mix
 }
 
 // Data contains the set of transactions included in the block

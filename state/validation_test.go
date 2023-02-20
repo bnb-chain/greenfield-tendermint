@@ -73,7 +73,6 @@ func TestValidateBlockHeader(t *testing.T) {
 		{"Proposer invalid", func(block *types.Block) { block.ProposerAddress = []byte("wrong size") }},
 
 		{"RandaoMix invalid", func(block *types.Block) { block.RandaoMix = []byte("wrong size") }},
-		{"RandaoReveal invalid", func(block *types.Block) { block.RandaoReveal = []byte("wrong size") }},
 	}
 
 	// Build up state for multiple heights

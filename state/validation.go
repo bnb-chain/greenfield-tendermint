@@ -114,7 +114,7 @@ func validateBlock(state State, block *types.Block) error {
 	// Validate randao reveal and randao mix
 	if block.Height != state.InitialHeight {
 		if err := state.Validators.VerifyRandao(
-			state.ChainID, state.LastRandaoMix, block.Height, block.ProposerAddress, block.RandaoReveal.Bytes(), block.RandaoMix.Bytes()); err != nil {
+			state.ChainID, state.LastRandaoMix, block.Height, block.ProposerAddress, block.RandaoMix.Bytes()); err != nil {
 			return err
 		}
 	}

@@ -53,8 +53,7 @@ func (tm2pb) Header(header *Header) tmproto.Header {
 		EvidenceHash:    header.EvidenceHash,
 		ProposerAddress: header.ProposerAddress,
 
-		RandaoMix:    header.RandaoMix,
-		RandaoReveal: header.RandaoReveal,
+		RandaoMix: header.RandaoMix,
 	}
 }
 

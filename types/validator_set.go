@@ -10,6 +10,7 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/tendermint/tendermint/crypto/ed25519"
 	"github.com/tendermint/tendermint/crypto/merkle"
 	"github.com/tendermint/tendermint/crypto/tmhash"
 	tmmath "github.com/tendermint/tendermint/libs/math"
@@ -716,18 +717,14 @@ func (vals *ValidatorSet) VerifyCommit(chainID string, blockID BlockID,
 }
 
 // VerifyRandao verify the randao reveal and randao mix. The proposer should be in the list of validators, which already checked.
-func (vals *ValidatorSet) VerifyRandao(chainID string, lastRandaoMix []byte, height int64, proposerAddress Address, randaoReveal, randaoMix []byte) error {
-	expectedMix := make([]byte, tmhash.Size)
-	revealHash := tmhash.Sum(randaoReveal)
+func (vals *ValidatorSet) VerifyRandao(chainID string, lastRandaoMix []byte, height int64, proposerAddress Address, randaoMix []byte) error {
+	randaoReveal := make([]byte, ed25519.SignatureSize)
 	if len(lastRandaoMix) == 0 {
-		lastRandaoMix = make([]byte, tmhash.Size)
+		lastRandaoMix = make([]byte, ed25519.SignatureSize)
+		copy(randaoReveal, randaoMix)
 	}
-	for i := range expectedMix {
-		expectedMix[i] = lastRandaoMix[i] ^ revealHash[i]
-	}
-
-	if !bytes.Equal(expectedMix, randaoMix) {
-		return fmt.Errorf("wrong randao mix, expected: %X, actual: %X ", expectedMix, randaoMix)
+	for i := range randaoMix {
+		randaoReveal[i] = lastRandaoMix[i] ^ randaoMix[i]
 	}
 
 	var proposer *Validator
