@@ -10,7 +10,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	abci "github.com/tendermint/tendermint/abci/types"
-	"github.com/tendermint/tendermint/crypto/bls12381"
+	"github.com/tendermint/tendermint/crypto/ed25519"
 	cryptoenc "github.com/tendermint/tendermint/crypto/encoding"
 	"github.com/tendermint/tendermint/crypto/tmhash"
 	tmrand "github.com/tendermint/tendermint/libs/rand"
@@ -132,7 +132,7 @@ func TestBroadcastEvidence_DuplicateVoteEvidence(t *testing.T) {
 		err = client.WaitForHeight(c, status.SyncInfo.LatestBlockHeight+2, nil)
 		require.NoError(t, err)
 
-		bls12381pub := pv.Key.PubKey.(bls12381.PubKey)
+		bls12381pub := pv.Key.PubKey.(ed25519.PubKey)
 		rawpub := bls12381pub.Bytes()
 		result2, err := c.ABCIQuery(context.Background(), "/val", rawpub)
 		require.NoError(t, err)

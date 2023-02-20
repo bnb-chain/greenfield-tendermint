@@ -10,7 +10,7 @@ import (
 
 	"github.com/gogo/protobuf/proto"
 
-	"github.com/tendermint/tendermint/crypto/bls12381"
+	"github.com/tendermint/tendermint/crypto/ed25519"
 	"github.com/tendermint/tendermint/crypto/tmhash"
 
 	"github.com/tendermint/tendermint/crypto"
@@ -173,7 +173,7 @@ func NewFilePV(privKey crypto.PrivKey, keyFilePath, stateFilePath string) *FileP
 // and sets the filePaths, but does not call Save().
 func GenFilePV(keyFilePath, stateFilePath string) *FilePV {
 	// change default validator key type to bls12381
-	return NewFilePV(bls12381.GenPrivKey(), keyFilePath, stateFilePath)
+	return NewFilePV(ed25519.GenPrivKey(), keyFilePath, stateFilePath)
 }
 
 // LoadFilePV loads a FilePV from the filePaths.  The FilePV handles double

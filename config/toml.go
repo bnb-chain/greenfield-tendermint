@@ -598,17 +598,16 @@ var testGenesisFmt = `{
 		},
 		"validator": {
 			"pub_key_types": [
-				"bls12381"
+				"ed25519"
 			]
 		},
 		"version": {}
 	},
   "validators": [
     {
-      "address": "12AF9BD9CF12CAECDFE8FB5D3A0EA8E86694FDD8",
       "pub_key": {
-        "type": "tendermint/PubKeyBls12381",
-        "value": "paoH4lMSautP8AXZFW4+mvEA7xz6Vwm56QRMa+qvKuSqkZFshHnqECHVNQD7v9n1"
+        "type": "tendermint/PubKeyEd25519",
+        "value":"AT/+aaL1eB0477Mud9JMm8Sh8BIvOYlPGC9KkIUmFaE="
       },
       "power": "10",
       "name": ""
@@ -618,14 +617,14 @@ var testGenesisFmt = `{
 }`
 
 var testPrivValidatorKey = `{
-  "address": "12AF9BD9CF12CAECDFE8FB5D3A0EA8E86694FDD8",
+  "address": "A3258DCBF45DCA0DF052981870F2D1441A36D145",
   "pub_key": {
-    "type": "tendermint/PubKeyBls12381",
-    "value": "paoH4lMSautP8AXZFW4+mvEA7xz6Vwm56QRMa+qvKuSqkZFshHnqECHVNQD7v9n1"
+    "type": "tendermint/PubKeyEd25519",
+    "value": "AT/+aaL1eB0477Mud9JMm8Sh8BIvOYlPGC9KkIUmFaE="
   },
   "priv_key": {
-    "type": "tendermint/PrivKeyBls12381",
-    "value": "HIZN3AADlFyIkTW6QMsIWpQxnjJX2LuJb4M/WcN56Ho="
+    "type": "tendermint/PrivKeyEd25519",
+    "value": "EVkqJO/jIXp3rkASXfh9YnyToYXRXhBr6g9cQVxPFnQBP/5povV4HTjvsy530kybxKHwEi85iU8YL0qQhSYVoQ=="
   }
 }`
 

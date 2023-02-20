@@ -7,7 +7,6 @@ import (
 	"fmt"
 
 	"github.com/tendermint/tendermint/crypto"
-	"github.com/tendermint/tendermint/crypto/bls12381"
 	"github.com/tendermint/tendermint/crypto/ed25519"
 	"github.com/tendermint/tendermint/crypto/tmhash"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
@@ -58,7 +57,7 @@ type MockPV struct {
 }
 
 func NewMockPV() MockPV {
-	return MockPV{bls12381.GenPrivKey(), false, false}
+	return MockPV{ed25519.GenPrivKey(), false, false}
 }
 
 // NewMockPVWithParams allows one to create a MockPV instance, but with finer

@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
-	"github.com/tendermint/tendermint/crypto/bls12381"
+	"github.com/tendermint/tendermint/crypto/ed25519"
 
 	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/crypto"
@@ -222,14 +222,14 @@ func TestBeginBlockByzantineValidators(t *testing.T) {
 }
 
 func TestValidateValidatorUpdates(t *testing.T) {
-	pubkey1 := bls12381.GenPrivKey().PubKey()
-	pubkey2 := bls12381.GenPrivKey().PubKey()
+	pubkey1 := ed25519.GenPrivKey().PubKey()
+	pubkey2 := ed25519.GenPrivKey().PubKey()
 	pk1, err := cryptoenc.PubKeyToProto(pubkey1)
 	assert.NoError(t, err)
 	pk2, err := cryptoenc.PubKeyToProto(pubkey2)
 	assert.NoError(t, err)
 
-	defaultValidatorParams := tmproto.ValidatorParams{PubKeyTypes: []string{types.ABCIPubKeyTypeBls12381}}
+	defaultValidatorParams := tmproto.ValidatorParams{PubKeyTypes: []string{types.ABCIPubKeyTypeEd25519}}
 
 	testCases := []struct {
 		name string
@@ -285,9 +285,9 @@ func TestValidateValidatorUpdates(t *testing.T) {
 }
 
 func TestUpdateValidators(t *testing.T) {
-	pubkey1 := bls12381.GenPrivKey().PubKey()
+	pubkey1 := ed25519.GenPrivKey().PubKey()
 	val1 := types.NewValidator(pubkey1, 10)
-	pubkey2 := bls12381.GenPrivKey().PubKey()
+	pubkey2 := ed25519.GenPrivKey().PubKey()
 	val2 := types.NewValidator(pubkey2, 20)
 
 	pk, err := cryptoenc.PubKeyToProto(pubkey1)
@@ -297,8 +297,8 @@ func TestUpdateValidators(t *testing.T) {
 
 	// updated validator with mock relayer bls public key and relayer address
 	updated := types.NewValidator(pubkey1, 20)
-	blsPubKey := bls12381.GenPrivKey().PubKey().Bytes()
-	relayer := bls12381.GenPrivKey().PubKey().Address().Bytes()
+	blsPubKey := ed25519.GenPrivKey().PubKey().Bytes()
+	relayer := ed25519.GenPrivKey().PubKey().Address().Bytes()
 	updated.SetRelayerBlsKey(blsPubKey)
 	updated.SetRelayerAddress(relayer)
 
@@ -415,7 +415,7 @@ func TestEndBlockValidatorUpdates(t *testing.T) {
 	block := makeBlock(state, 1)
 	blockID := types.BlockID{Hash: block.Hash(), PartSetHeader: block.MakePartSet(testPartSize).Header()}
 
-	pubkey := bls12381.GenPrivKey().PubKey()
+	pubkey := ed25519.GenPrivKey().PubKey()
 	pk, err := cryptoenc.PubKeyToProto(pubkey)
 	require.NoError(t, err)
 
@@ -423,8 +423,8 @@ func TestEndBlockValidatorUpdates(t *testing.T) {
 	currentValPk, err := cryptoenc.PubKeyToProto(currentVal.PubKey)
 	require.NoError(t, err)
 	currentValPower := currentVal.VotingPower
-	blsPubKey := bls12381.GenPrivKey().PubKey().Bytes()
-	relayer := bls12381.GenPrivKey().PubKey().Address().Bytes()
+	blsPubKey := ed25519.GenPrivKey().PubKey().Bytes()
+	relayer := ed25519.GenPrivKey().PubKey().Address().Bytes()
 
 	app.ValidatorUpdates = []abci.ValidatorUpdate{
 		{PubKey: pk, Power: 10}, // add a new validator

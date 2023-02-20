@@ -9,9 +9,9 @@ import (
 
 	"github.com/gogo/protobuf/proto"
 	gogotypes "github.com/gogo/protobuf/types"
+	"github.com/tendermint/tendermint/crypto/ed25519"
 
 	"github.com/tendermint/tendermint/crypto"
-	"github.com/tendermint/tendermint/crypto/bls12381"
 	"github.com/tendermint/tendermint/crypto/merkle"
 	"github.com/tendermint/tendermint/crypto/tmhash"
 	"github.com/tendermint/tendermint/libs/bits"
@@ -442,9 +442,9 @@ func (h Header) ValidateBasic() error {
 	}
 
 	// Validate randao reveal
-	if len(h.RandaoReveal) > 0 && len(h.RandaoReveal) != bls12381.SignatureSize {
+	if len(h.RandaoReveal) > 0 && len(h.RandaoReveal) != ed25519.SignatureSize {
 		return fmt.Errorf("wrong RandaoReveal: expected length %d, actual length %d",
-			bls12381.SignatureSize, len(h.RandaoReveal))
+			ed25519.SignatureSize, len(h.RandaoReveal))
 	}
 
 	return nil
