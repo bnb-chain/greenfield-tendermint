@@ -721,7 +721,6 @@ func (vals *ValidatorSet) VerifyRandao(chainID string, lastRandaoMix []byte, hei
 	randaoReveal := make([]byte, ed25519.SignatureSize)
 	if len(lastRandaoMix) == 0 {
 		lastRandaoMix = make([]byte, ed25519.SignatureSize)
-		copy(randaoReveal, randaoMix)
 	}
 	for i := range randaoMix {
 		randaoReveal[i] = lastRandaoMix[i] ^ randaoMix[i]
