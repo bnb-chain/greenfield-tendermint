@@ -361,7 +361,7 @@ func (h *Header) Populate(
 	timestamp time.Time, lastBlockID BlockID,
 	valHash, nextValHash []byte,
 	consensusHash, appHash, lastResultsHash []byte,
-	randaoMix, randaoReveal []byte,
+	randaoMix,
 	proposerAddress Address,
 ) {
 	h.Version = version

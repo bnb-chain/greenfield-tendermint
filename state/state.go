@@ -276,7 +276,7 @@ func (state State) MakeBlock(
 		timestamp, state.LastBlockID,
 		state.Validators.Hash(), state.NextValidators.Hash(),
 		types.HashConsensusParams(state.ConsensusParams), state.AppHash, state.LastResultsHash,
-		randaoMix, randaoReveal,
+		randaoMix,
 		proposerAddress,
 	)
 

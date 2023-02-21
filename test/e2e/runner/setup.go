@@ -16,9 +16,8 @@ import (
 
 	"github.com/BurntSushi/toml"
 
-	"github.com/tendermint/tendermint/crypto/ed25519"
-
 	"github.com/tendermint/tendermint/config"
+	"github.com/tendermint/tendermint/crypto/ed25519"
 	"github.com/tendermint/tendermint/libs/log"
 	"github.com/tendermint/tendermint/p2p"
 	"github.com/tendermint/tendermint/privval"
