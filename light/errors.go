@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/tendermint/tendermint/types"
+	"github.com/bnb-chain/greenfield-tendermint/types"
 )
 
 // ErrOldHeaderExpired means the old (trusted) header has expired according to

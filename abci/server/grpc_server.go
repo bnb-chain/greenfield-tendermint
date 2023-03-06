@@ -5,9 +5,9 @@ import (
 
 	"google.golang.org/grpc"
 
-	"github.com/tendermint/tendermint/abci/types"
-	tmnet "github.com/tendermint/tendermint/libs/net"
-	"github.com/tendermint/tendermint/libs/service"
+	"github.com/bnb-chain/greenfield-tendermint/abci/types"
+	tmnet "github.com/bnb-chain/greenfield-tendermint/libs/net"
+	"github.com/bnb-chain/greenfield-tendermint/libs/service"
 )
 
 type GRPCServer struct {

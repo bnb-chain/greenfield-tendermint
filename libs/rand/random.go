@@ -5,7 +5,7 @@ import (
 	mrand "math/rand"
 	"time"
 
-	tmsync "github.com/tendermint/tendermint/libs/sync"
+	tmsync "github.com/bnb-chain/greenfield-tendermint/libs/sync"
 )
 
 const (

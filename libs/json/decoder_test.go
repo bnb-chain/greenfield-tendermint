@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/tendermint/tendermint/libs/json"
+	"github.com/bnb-chain/greenfield-tendermint/libs/json"
 )
 
 func TestUnmarshal(t *testing.T) {

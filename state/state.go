@@ -9,14 +9,14 @@ import (
 
 	"github.com/gogo/protobuf/proto"
 
-	"github.com/tendermint/tendermint/crypto/ed25519"
+	"github.com/bnb-chain/greenfield-tendermint/crypto/ed25519"
 
-	tmstate "github.com/tendermint/tendermint/proto/tendermint/state"
-	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
-	tmversion "github.com/tendermint/tendermint/proto/tendermint/version"
-	"github.com/tendermint/tendermint/types"
-	tmtime "github.com/tendermint/tendermint/types/time"
-	"github.com/tendermint/tendermint/version"
+	tmstate "github.com/bnb-chain/greenfield-tendermint/proto/tendermint/state"
+	tmproto "github.com/bnb-chain/greenfield-tendermint/proto/tendermint/types"
+	tmversion "github.com/bnb-chain/greenfield-tendermint/proto/tendermint/version"
+	"github.com/bnb-chain/greenfield-tendermint/types"
+	tmtime "github.com/bnb-chain/greenfield-tendermint/types/time"
+	"github.com/bnb-chain/greenfield-tendermint/version"
 )
 
 // database key

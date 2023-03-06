@@ -8,18 +8,18 @@ import (
 
 	dbm "github.com/tendermint/tm-db"
 
-	"github.com/tendermint/tendermint/libs/log"
-	tmsync "github.com/tendermint/tendermint/libs/sync"
-	"github.com/tendermint/tendermint/light"
-	lightprovider "github.com/tendermint/tendermint/light/provider"
-	lighthttp "github.com/tendermint/tendermint/light/provider/http"
-	lightrpc "github.com/tendermint/tendermint/light/rpc"
-	lightdb "github.com/tendermint/tendermint/light/store/db"
-	tmstate "github.com/tendermint/tendermint/proto/tendermint/state"
-	rpchttp "github.com/tendermint/tendermint/rpc/client/http"
-	sm "github.com/tendermint/tendermint/state"
-	"github.com/tendermint/tendermint/types"
-	"github.com/tendermint/tendermint/version"
+	"github.com/bnb-chain/greenfield-tendermint/libs/log"
+	tmsync "github.com/bnb-chain/greenfield-tendermint/libs/sync"
+	"github.com/bnb-chain/greenfield-tendermint/light"
+	lightprovider "github.com/bnb-chain/greenfield-tendermint/light/provider"
+	lighthttp "github.com/bnb-chain/greenfield-tendermint/light/provider/http"
+	lightrpc "github.com/bnb-chain/greenfield-tendermint/light/rpc"
+	lightdb "github.com/bnb-chain/greenfield-tendermint/light/store/db"
+	tmstate "github.com/bnb-chain/greenfield-tendermint/proto/tendermint/state"
+	rpchttp "github.com/bnb-chain/greenfield-tendermint/rpc/client/http"
+	sm "github.com/bnb-chain/greenfield-tendermint/state"
+	"github.com/bnb-chain/greenfield-tendermint/types"
+	"github.com/bnb-chain/greenfield-tendermint/version"
 )
 
 //go:generate ../scripts/mockery_generate.sh StateProvider

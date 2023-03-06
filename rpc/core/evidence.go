@@ -4,9 +4,9 @@ import (
 	"errors"
 	"fmt"
 
-	ctypes "github.com/tendermint/tendermint/rpc/core/types"
-	rpctypes "github.com/tendermint/tendermint/rpc/jsonrpc/types"
-	"github.com/tendermint/tendermint/types"
+	ctypes "github.com/bnb-chain/greenfield-tendermint/rpc/core/types"
+	rpctypes "github.com/bnb-chain/greenfield-tendermint/rpc/jsonrpc/types"
+	"github.com/bnb-chain/greenfield-tendermint/types"
 )
 
 // BroadcastEvidence broadcasts evidence of the misbehavior.

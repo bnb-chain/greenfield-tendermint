@@ -5,8 +5,8 @@ import (
 
 	"github.com/spf13/cobra"
 
-	tmjson "github.com/tendermint/tendermint/libs/json"
-	"github.com/tendermint/tendermint/privval"
+	tmjson "github.com/bnb-chain/greenfield-tendermint/libs/json"
+	"github.com/bnb-chain/greenfield-tendermint/privval"
 )
 
 // GenValidatorCmd allows the generation of a keypair for a

@@ -10,11 +10,11 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/tendermint/tendermint/crypto/ed25519"
-	"github.com/tendermint/tendermint/crypto/merkle"
-	"github.com/tendermint/tendermint/crypto/tmhash"
-	tmmath "github.com/tendermint/tendermint/libs/math"
-	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
+	"github.com/bnb-chain/greenfield-tendermint/crypto/ed25519"
+	"github.com/bnb-chain/greenfield-tendermint/crypto/merkle"
+	"github.com/bnb-chain/greenfield-tendermint/crypto/tmhash"
+	tmmath "github.com/bnb-chain/greenfield-tendermint/libs/math"
+	tmproto "github.com/bnb-chain/greenfield-tendermint/proto/tendermint/types"
 )
 
 const (

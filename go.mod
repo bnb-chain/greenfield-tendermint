@@ -1,4 +1,4 @@
-module github.com/tendermint/tendermint
+module github.com/bnb-chain/greenfield-tendermint
 
 go 1.18
 
@@ -242,6 +242,7 @@ require (
 	github.com/supranational/blst v0.3.5 // indirect
 	github.com/tdakkota/asciicheck v0.1.1 // indirect
 	github.com/tecbot/gorocksdb v0.0.0-20191217155057-f0fad39f321c // indirect
+	github.com/tendermint/tendermint v0.34.14 // indirect
 	github.com/tetafro/godot v1.4.11 // indirect
 	github.com/thomaso-mirodin/intmath v0.0.0-20160323211736-5dc6d854e46e // indirect
 	github.com/timakin/bodyclose v0.0.0-20210704033933-f49887972144 // indirect

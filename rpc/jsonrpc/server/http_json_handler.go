@@ -9,9 +9,9 @@ import (
 	"reflect"
 	"sort"
 
-	tmjson "github.com/tendermint/tendermint/libs/json"
-	"github.com/tendermint/tendermint/libs/log"
-	types "github.com/tendermint/tendermint/rpc/jsonrpc/types"
+	tmjson "github.com/bnb-chain/greenfield-tendermint/libs/json"
+	"github.com/bnb-chain/greenfield-tendermint/libs/log"
+	types "github.com/bnb-chain/greenfield-tendermint/rpc/jsonrpc/types"
 )
 
 // HTTP + JSON handler

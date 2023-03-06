@@ -8,11 +8,11 @@ import (
 	"os"
 	"runtime"
 
-	"github.com/tendermint/tendermint/abci/types"
-	tmlog "github.com/tendermint/tendermint/libs/log"
-	tmnet "github.com/tendermint/tendermint/libs/net"
-	"github.com/tendermint/tendermint/libs/service"
-	tmsync "github.com/tendermint/tendermint/libs/sync"
+	"github.com/bnb-chain/greenfield-tendermint/abci/types"
+	tmlog "github.com/bnb-chain/greenfield-tendermint/libs/log"
+	tmnet "github.com/bnb-chain/greenfield-tendermint/libs/net"
+	"github.com/bnb-chain/greenfield-tendermint/libs/service"
+	tmsync "github.com/bnb-chain/greenfield-tendermint/libs/sync"
 )
 
 // var maxNumberConnections = 2

@@ -4,11 +4,11 @@ import (
 	"os"
 	"path/filepath"
 
-	cmd "github.com/tendermint/tendermint/cmd/tendermint/commands"
-	"github.com/tendermint/tendermint/cmd/tendermint/commands/debug"
-	cfg "github.com/tendermint/tendermint/config"
-	"github.com/tendermint/tendermint/libs/cli"
-	nm "github.com/tendermint/tendermint/node"
+	cmd "github.com/bnb-chain/greenfield-tendermint/cmd/tendermint/commands"
+	"github.com/bnb-chain/greenfield-tendermint/cmd/tendermint/commands/debug"
+	cfg "github.com/bnb-chain/greenfield-tendermint/config"
+	"github.com/bnb-chain/greenfield-tendermint/libs/cli"
+	nm "github.com/bnb-chain/greenfield-tendermint/node"
 )
 
 func main() {

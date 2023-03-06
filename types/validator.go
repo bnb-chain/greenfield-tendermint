@@ -6,10 +6,10 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/tendermint/tendermint/crypto"
-	ce "github.com/tendermint/tendermint/crypto/encoding"
-	tmrand "github.com/tendermint/tendermint/libs/rand"
-	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
+	"github.com/bnb-chain/greenfield-tendermint/crypto"
+	ce "github.com/bnb-chain/greenfield-tendermint/crypto/encoding"
+	tmrand "github.com/bnb-chain/greenfield-tendermint/libs/rand"
+	tmproto "github.com/bnb-chain/greenfield-tendermint/proto/tendermint/types"
 )
 
 const (

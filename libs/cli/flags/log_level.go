@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/tendermint/tendermint/libs/log"
+	"github.com/bnb-chain/greenfield-tendermint/libs/log"
 )
 
 const (

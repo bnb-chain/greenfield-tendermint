@@ -3,12 +3,12 @@ package privval
 import (
 	"fmt"
 
-	"github.com/tendermint/tendermint/crypto"
-	cryptoenc "github.com/tendermint/tendermint/crypto/encoding"
-	cryptoproto "github.com/tendermint/tendermint/proto/tendermint/crypto"
-	privvalproto "github.com/tendermint/tendermint/proto/tendermint/privval"
-	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
-	"github.com/tendermint/tendermint/types"
+	"github.com/bnb-chain/greenfield-tendermint/crypto"
+	cryptoenc "github.com/bnb-chain/greenfield-tendermint/crypto/encoding"
+	cryptoproto "github.com/bnb-chain/greenfield-tendermint/proto/tendermint/crypto"
+	privvalproto "github.com/bnb-chain/greenfield-tendermint/proto/tendermint/privval"
+	tmproto "github.com/bnb-chain/greenfield-tendermint/proto/tendermint/types"
+	"github.com/bnb-chain/greenfield-tendermint/types"
 )
 
 func DefaultValidationRequestHandler(

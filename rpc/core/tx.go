@@ -5,12 +5,12 @@ import (
 	"fmt"
 	"sort"
 
-	tmmath "github.com/tendermint/tendermint/libs/math"
-	tmquery "github.com/tendermint/tendermint/libs/pubsub/query"
-	ctypes "github.com/tendermint/tendermint/rpc/core/types"
-	rpctypes "github.com/tendermint/tendermint/rpc/jsonrpc/types"
-	"github.com/tendermint/tendermint/state/txindex/null"
-	"github.com/tendermint/tendermint/types"
+	tmmath "github.com/bnb-chain/greenfield-tendermint/libs/math"
+	tmquery "github.com/bnb-chain/greenfield-tendermint/libs/pubsub/query"
+	ctypes "github.com/bnb-chain/greenfield-tendermint/rpc/core/types"
+	rpctypes "github.com/bnb-chain/greenfield-tendermint/rpc/jsonrpc/types"
+	"github.com/bnb-chain/greenfield-tendermint/state/txindex/null"
+	"github.com/bnb-chain/greenfield-tendermint/types"
 )
 
 // Tx allows you to query the transaction results. `nil` could mean the

@@ -9,10 +9,10 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	rpchttp "github.com/tendermint/tendermint/rpc/client/http"
-	rpctypes "github.com/tendermint/tendermint/rpc/core/types"
-	e2e "github.com/tendermint/tendermint/test/e2e/pkg"
-	"github.com/tendermint/tendermint/types"
+	rpchttp "github.com/bnb-chain/greenfield-tendermint/rpc/client/http"
+	rpctypes "github.com/bnb-chain/greenfield-tendermint/rpc/core/types"
+	e2e "github.com/bnb-chain/greenfield-tendermint/test/e2e/pkg"
+	"github.com/bnb-chain/greenfield-tendermint/types"
 )
 
 func init() {

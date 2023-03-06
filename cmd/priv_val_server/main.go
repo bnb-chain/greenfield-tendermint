@@ -5,12 +5,12 @@ import (
 	"os"
 	"time"
 
-	"github.com/tendermint/tendermint/crypto/ed25519"
-	"github.com/tendermint/tendermint/libs/log"
-	tmnet "github.com/tendermint/tendermint/libs/net"
-	tmos "github.com/tendermint/tendermint/libs/os"
+	"github.com/bnb-chain/greenfield-tendermint/crypto/ed25519"
+	"github.com/bnb-chain/greenfield-tendermint/libs/log"
+	tmnet "github.com/bnb-chain/greenfield-tendermint/libs/net"
+	tmos "github.com/bnb-chain/greenfield-tendermint/libs/os"
 
-	"github.com/tendermint/tendermint/privval"
+	"github.com/bnb-chain/greenfield-tendermint/privval"
 )
 
 func main() {

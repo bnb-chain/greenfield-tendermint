@@ -1,8 +1,8 @@
 package p2p
 
 import (
-	"github.com/tendermint/tendermint/libs/service"
-	"github.com/tendermint/tendermint/p2p/conn"
+	"github.com/bnb-chain/greenfield-tendermint/libs/service"
+	"github.com/bnb-chain/greenfield-tendermint/p2p/conn"
 )
 
 // Reactor is responsible for handling incoming messages on one or more

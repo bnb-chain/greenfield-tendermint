@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/tendermint/tendermint/p2p"
+	"github.com/bnb-chain/greenfield-tendermint/p2p"
 )
 
 func setupChunkQueue(t *testing.T) (*chunkQueue, func()) {

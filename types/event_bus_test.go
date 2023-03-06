@@ -10,10 +10,10 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	abci "github.com/tendermint/tendermint/abci/types"
-	tmpubsub "github.com/tendermint/tendermint/libs/pubsub"
-	tmquery "github.com/tendermint/tendermint/libs/pubsub/query"
-	tmrand "github.com/tendermint/tendermint/libs/rand"
+	abci "github.com/bnb-chain/greenfield-tendermint/abci/types"
+	tmpubsub "github.com/bnb-chain/greenfield-tendermint/libs/pubsub"
+	tmquery "github.com/bnb-chain/greenfield-tendermint/libs/pubsub/query"
+	tmrand "github.com/bnb-chain/greenfield-tendermint/libs/rand"
 )
 
 func TestEventBusPublishEventTx(t *testing.T) {

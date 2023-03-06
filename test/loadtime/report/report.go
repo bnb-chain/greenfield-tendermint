@@ -8,8 +8,8 @@ import (
 	"github.com/gofrs/uuid"
 	"gonum.org/v1/gonum/stat"
 
-	"github.com/tendermint/tendermint/test/loadtime/payload"
-	"github.com/tendermint/tendermint/types"
+	"github.com/bnb-chain/greenfield-tendermint/test/loadtime/payload"
+	"github.com/bnb-chain/greenfield-tendermint/types"
 )
 
 // BlockStore defines the set of methods needed by the report generator from
