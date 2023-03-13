@@ -70,7 +70,7 @@ func (v *Validator) ValidateBasic() error {
 		return fmt.Errorf("validator relayer address is the wrong size: %v", v.RelayerAddress)
 	}
 	if len(v.ChallengerAddress) != 0 && len(v.ChallengerAddress) != AddressSize {
-		return fmt.Errorf("validator relayer address is the wrong size: %v", v.ChallengerAddress)
+		return fmt.Errorf("validator challenger address is the wrong size: %v", v.ChallengerAddress)
 	}
 
 	return nil
