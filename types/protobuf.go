@@ -110,6 +110,7 @@ func (pb2tm) ValidatorUpdates(vals []abci.ValidatorUpdate) ([]*Validator, error)
 		updated := NewValidator(pub, v.Power)
 		updated.SetRelayerBlsKey(v.RelayerBlsKey)
 		updated.SetRelayerAddress(v.RelayerAddress)
+		updated.SetChallengerAddress(v.ChallengerAddress)
 		tmVals[i] = updated
 	}
 	return tmVals, nil
