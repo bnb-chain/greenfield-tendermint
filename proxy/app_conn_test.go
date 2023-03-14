@@ -5,12 +5,12 @@ import (
 	"strings"
 	"testing"
 
-	abcicli "github.com/tendermint/tendermint/abci/client"
-	"github.com/tendermint/tendermint/abci/example/kvstore"
-	"github.com/tendermint/tendermint/abci/server"
-	"github.com/tendermint/tendermint/abci/types"
-	"github.com/tendermint/tendermint/libs/log"
-	tmrand "github.com/tendermint/tendermint/libs/rand"
+	abcicli "github.com/bnb-chain/greenfield-tendermint/abci/client"
+	"github.com/bnb-chain/greenfield-tendermint/abci/example/kvstore"
+	"github.com/bnb-chain/greenfield-tendermint/abci/server"
+	"github.com/bnb-chain/greenfield-tendermint/abci/types"
+	"github.com/bnb-chain/greenfield-tendermint/libs/log"
+	tmrand "github.com/bnb-chain/greenfield-tendermint/libs/rand"
 )
 
 //----------------------------------------

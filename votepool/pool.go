@@ -7,10 +7,10 @@ import (
 
 	lru "github.com/hashicorp/golang-lru"
 
-	"github.com/tendermint/tendermint/libs/log"
-	"github.com/tendermint/tendermint/libs/service"
-	"github.com/tendermint/tendermint/libs/sync"
-	"github.com/tendermint/tendermint/types"
+	"github.com/bnb-chain/greenfield-tendermint/libs/log"
+	"github.com/bnb-chain/greenfield-tendermint/libs/service"
+	"github.com/bnb-chain/greenfield-tendermint/libs/sync"
+	"github.com/bnb-chain/greenfield-tendermint/types"
 )
 
 const (

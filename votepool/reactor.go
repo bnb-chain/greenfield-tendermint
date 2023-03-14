@@ -8,11 +8,11 @@ import (
 	"github.com/gogo/protobuf/proto"
 	lru "github.com/hashicorp/golang-lru"
 
-	"github.com/tendermint/tendermint/libs/log"
-	"github.com/tendermint/tendermint/p2p"
-	"github.com/tendermint/tendermint/p2p/conn"
-	"github.com/tendermint/tendermint/proto/tendermint/votepool"
-	"github.com/tendermint/tendermint/types"
+	"github.com/bnb-chain/greenfield-tendermint/libs/log"
+	"github.com/bnb-chain/greenfield-tendermint/p2p"
+	"github.com/bnb-chain/greenfield-tendermint/p2p/conn"
+	"github.com/bnb-chain/greenfield-tendermint/proto/tendermint/votepool"
+	"github.com/bnb-chain/greenfield-tendermint/types"
 )
 
 const (

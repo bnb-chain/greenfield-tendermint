@@ -4,9 +4,9 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/tendermint/tendermint/crypto/tmhash"
-	tmrand "github.com/tendermint/tendermint/libs/rand"
-	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
+	"github.com/bnb-chain/greenfield-tendermint/crypto/tmhash"
+	tmrand "github.com/bnb-chain/greenfield-tendermint/libs/rand"
+	tmproto "github.com/bnb-chain/greenfield-tendermint/proto/tendermint/types"
 )
 
 func TestCanonicalizeBlockID(t *testing.T) {

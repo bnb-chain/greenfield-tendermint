@@ -6,12 +6,12 @@ import (
 	"net"
 	"net/http"
 
-	"github.com/tendermint/tendermint/libs/log"
-	tmpubsub "github.com/tendermint/tendermint/libs/pubsub"
-	"github.com/tendermint/tendermint/light"
-	lrpc "github.com/tendermint/tendermint/light/rpc"
-	rpchttp "github.com/tendermint/tendermint/rpc/client/http"
-	rpcserver "github.com/tendermint/tendermint/rpc/jsonrpc/server"
+	"github.com/bnb-chain/greenfield-tendermint/libs/log"
+	tmpubsub "github.com/bnb-chain/greenfield-tendermint/libs/pubsub"
+	"github.com/bnb-chain/greenfield-tendermint/light"
+	lrpc "github.com/bnb-chain/greenfield-tendermint/light/rpc"
+	rpchttp "github.com/bnb-chain/greenfield-tendermint/rpc/client/http"
+	rpcserver "github.com/bnb-chain/greenfield-tendermint/rpc/jsonrpc/server"
 )
 
 // A Proxy defines parameters for running an HTTP server proxy.

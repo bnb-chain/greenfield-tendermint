@@ -7,14 +7,14 @@ import (
 
 	"github.com/gogo/protobuf/proto"
 
-	abci "github.com/tendermint/tendermint/abci/types"
-	"github.com/tendermint/tendermint/config"
-	tmsync "github.com/tendermint/tendermint/libs/sync"
-	"github.com/tendermint/tendermint/p2p"
-	ssproto "github.com/tendermint/tendermint/proto/tendermint/statesync"
-	"github.com/tendermint/tendermint/proxy"
-	sm "github.com/tendermint/tendermint/state"
-	"github.com/tendermint/tendermint/types"
+	abci "github.com/bnb-chain/greenfield-tendermint/abci/types"
+	"github.com/bnb-chain/greenfield-tendermint/config"
+	tmsync "github.com/bnb-chain/greenfield-tendermint/libs/sync"
+	"github.com/bnb-chain/greenfield-tendermint/p2p"
+	ssproto "github.com/bnb-chain/greenfield-tendermint/proto/tendermint/statesync"
+	"github.com/bnb-chain/greenfield-tendermint/proxy"
+	sm "github.com/bnb-chain/greenfield-tendermint/state"
+	"github.com/bnb-chain/greenfield-tendermint/types"
 )
 
 const (

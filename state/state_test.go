@@ -13,15 +13,15 @@ import (
 
 	dbm "github.com/tendermint/tm-db"
 
-	abci "github.com/tendermint/tendermint/abci/types"
-	cfg "github.com/tendermint/tendermint/config"
-	"github.com/tendermint/tendermint/crypto/ed25519"
-	cryptoenc "github.com/tendermint/tendermint/crypto/encoding"
-	tmrand "github.com/tendermint/tendermint/libs/rand"
-	tmstate "github.com/tendermint/tendermint/proto/tendermint/state"
-	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
-	sm "github.com/tendermint/tendermint/state"
-	"github.com/tendermint/tendermint/types"
+	abci "github.com/bnb-chain/greenfield-tendermint/abci/types"
+	cfg "github.com/bnb-chain/greenfield-tendermint/config"
+	"github.com/bnb-chain/greenfield-tendermint/crypto/ed25519"
+	cryptoenc "github.com/bnb-chain/greenfield-tendermint/crypto/encoding"
+	tmrand "github.com/bnb-chain/greenfield-tendermint/libs/rand"
+	tmstate "github.com/bnb-chain/greenfield-tendermint/proto/tendermint/state"
+	tmproto "github.com/bnb-chain/greenfield-tendermint/proto/tendermint/types"
+	sm "github.com/bnb-chain/greenfield-tendermint/state"
+	"github.com/bnb-chain/greenfield-tendermint/types"
 )
 
 // setupTestCase does setup common to all test cases.

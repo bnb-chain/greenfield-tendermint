@@ -7,14 +7,14 @@ import (
 	"github.com/stretchr/testify/require"
 	dbm "github.com/tendermint/tm-db"
 
-	"github.com/tendermint/tendermint/crypto"
-	"github.com/tendermint/tendermint/crypto/tmhash"
-	tmstate "github.com/tendermint/tendermint/proto/tendermint/state"
-	tmversion "github.com/tendermint/tendermint/proto/tendermint/version"
-	"github.com/tendermint/tendermint/state"
-	"github.com/tendermint/tendermint/state/mocks"
-	"github.com/tendermint/tendermint/types"
-	"github.com/tendermint/tendermint/version"
+	"github.com/bnb-chain/greenfield-tendermint/crypto"
+	"github.com/bnb-chain/greenfield-tendermint/crypto/tmhash"
+	tmstate "github.com/bnb-chain/greenfield-tendermint/proto/tendermint/state"
+	tmversion "github.com/bnb-chain/greenfield-tendermint/proto/tendermint/version"
+	"github.com/bnb-chain/greenfield-tendermint/state"
+	"github.com/bnb-chain/greenfield-tendermint/state/mocks"
+	"github.com/bnb-chain/greenfield-tendermint/types"
+	"github.com/bnb-chain/greenfield-tendermint/version"
 )
 
 func TestRollback(t *testing.T) {

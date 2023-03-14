@@ -6,13 +6,13 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/tendermint/tendermint/crypto/merkle"
-	"github.com/tendermint/tendermint/libs/bits"
-	tmbytes "github.com/tendermint/tendermint/libs/bytes"
-	tmjson "github.com/tendermint/tendermint/libs/json"
-	tmmath "github.com/tendermint/tendermint/libs/math"
-	tmsync "github.com/tendermint/tendermint/libs/sync"
-	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
+	"github.com/bnb-chain/greenfield-tendermint/crypto/merkle"
+	"github.com/bnb-chain/greenfield-tendermint/libs/bits"
+	tmbytes "github.com/bnb-chain/greenfield-tendermint/libs/bytes"
+	tmjson "github.com/bnb-chain/greenfield-tendermint/libs/json"
+	tmmath "github.com/bnb-chain/greenfield-tendermint/libs/math"
+	tmsync "github.com/bnb-chain/greenfield-tendermint/libs/sync"
+	tmproto "github.com/bnb-chain/greenfield-tendermint/proto/tendermint/types"
 )
 
 var (

@@ -14,17 +14,17 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/tendermint/tendermint/abci/example/kvstore"
-	abci "github.com/tendermint/tendermint/abci/types"
-	cfg "github.com/tendermint/tendermint/config"
-	"github.com/tendermint/tendermint/libs/log"
-	tmrand "github.com/tendermint/tendermint/libs/rand"
-	"github.com/tendermint/tendermint/mempool"
-	"github.com/tendermint/tendermint/p2p"
-	"github.com/tendermint/tendermint/p2p/mock"
-	memproto "github.com/tendermint/tendermint/proto/tendermint/mempool"
-	"github.com/tendermint/tendermint/proxy"
-	"github.com/tendermint/tendermint/types"
+	"github.com/bnb-chain/greenfield-tendermint/abci/example/kvstore"
+	abci "github.com/bnb-chain/greenfield-tendermint/abci/types"
+	cfg "github.com/bnb-chain/greenfield-tendermint/config"
+	"github.com/bnb-chain/greenfield-tendermint/libs/log"
+	tmrand "github.com/bnb-chain/greenfield-tendermint/libs/rand"
+	"github.com/bnb-chain/greenfield-tendermint/mempool"
+	"github.com/bnb-chain/greenfield-tendermint/p2p"
+	"github.com/bnb-chain/greenfield-tendermint/p2p/mock"
+	memproto "github.com/bnb-chain/greenfield-tendermint/proto/tendermint/mempool"
+	"github.com/bnb-chain/greenfield-tendermint/proxy"
+	"github.com/bnb-chain/greenfield-tendermint/types"
 )
 
 const (

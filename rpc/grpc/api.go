@@ -3,9 +3,9 @@ package coregrpc
 import (
 	"context"
 
-	abci "github.com/tendermint/tendermint/abci/types"
-	core "github.com/tendermint/tendermint/rpc/core"
-	rpctypes "github.com/tendermint/tendermint/rpc/jsonrpc/types"
+	abci "github.com/bnb-chain/greenfield-tendermint/abci/types"
+	core "github.com/bnb-chain/greenfield-tendermint/rpc/core"
+	rpctypes "github.com/bnb-chain/greenfield-tendermint/rpc/jsonrpc/types"
 )
 
 type broadcastAPI struct {

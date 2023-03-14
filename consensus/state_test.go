@@ -10,15 +10,15 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/tendermint/tendermint/abci/example/counter"
-	cstypes "github.com/tendermint/tendermint/consensus/types"
-	"github.com/tendermint/tendermint/crypto/tmhash"
-	"github.com/tendermint/tendermint/libs/log"
-	tmpubsub "github.com/tendermint/tendermint/libs/pubsub"
-	tmrand "github.com/tendermint/tendermint/libs/rand"
-	p2pmock "github.com/tendermint/tendermint/p2p/mock"
-	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
-	"github.com/tendermint/tendermint/types"
+	"github.com/bnb-chain/greenfield-tendermint/abci/example/counter"
+	cstypes "github.com/bnb-chain/greenfield-tendermint/consensus/types"
+	"github.com/bnb-chain/greenfield-tendermint/crypto/tmhash"
+	"github.com/bnb-chain/greenfield-tendermint/libs/log"
+	tmpubsub "github.com/bnb-chain/greenfield-tendermint/libs/pubsub"
+	tmrand "github.com/bnb-chain/greenfield-tendermint/libs/rand"
+	p2pmock "github.com/bnb-chain/greenfield-tendermint/p2p/mock"
+	tmproto "github.com/bnb-chain/greenfield-tendermint/proto/tendermint/types"
+	"github.com/bnb-chain/greenfield-tendermint/types"
 )
 
 /*

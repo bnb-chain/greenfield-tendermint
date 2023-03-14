@@ -11,10 +11,10 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/tendermint/tendermint/libs/log"
-	"github.com/tendermint/tendermint/libs/protoio"
-	tmp2p "github.com/tendermint/tendermint/proto/tendermint/p2p"
-	"github.com/tendermint/tendermint/proto/tendermint/types"
+	"github.com/bnb-chain/greenfield-tendermint/libs/log"
+	"github.com/bnb-chain/greenfield-tendermint/libs/protoio"
+	tmp2p "github.com/bnb-chain/greenfield-tendermint/proto/tendermint/p2p"
+	"github.com/bnb-chain/greenfield-tendermint/proto/tendermint/types"
 )
 
 const maxPingPongPacketSize = 1024 // bytes

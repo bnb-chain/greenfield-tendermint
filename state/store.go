@@ -7,12 +7,12 @@ import (
 	"github.com/gogo/protobuf/proto"
 	dbm "github.com/tendermint/tm-db"
 
-	abci "github.com/tendermint/tendermint/abci/types"
-	tmmath "github.com/tendermint/tendermint/libs/math"
-	tmos "github.com/tendermint/tendermint/libs/os"
-	tmstate "github.com/tendermint/tendermint/proto/tendermint/state"
-	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
-	"github.com/tendermint/tendermint/types"
+	abci "github.com/bnb-chain/greenfield-tendermint/abci/types"
+	tmmath "github.com/bnb-chain/greenfield-tendermint/libs/math"
+	tmos "github.com/bnb-chain/greenfield-tendermint/libs/os"
+	tmstate "github.com/bnb-chain/greenfield-tendermint/proto/tendermint/state"
+	tmproto "github.com/bnb-chain/greenfield-tendermint/proto/tendermint/types"
+	"github.com/bnb-chain/greenfield-tendermint/types"
 )
 
 const (

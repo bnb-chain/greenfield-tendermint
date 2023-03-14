@@ -1,12 +1,12 @@
 package consensus
 
 import (
-	abci "github.com/tendermint/tendermint/abci/types"
-	"github.com/tendermint/tendermint/libs/clist"
-	mempl "github.com/tendermint/tendermint/mempool"
-	tmstate "github.com/tendermint/tendermint/proto/tendermint/state"
-	"github.com/tendermint/tendermint/proxy"
-	"github.com/tendermint/tendermint/types"
+	abci "github.com/bnb-chain/greenfield-tendermint/abci/types"
+	"github.com/bnb-chain/greenfield-tendermint/libs/clist"
+	mempl "github.com/bnb-chain/greenfield-tendermint/mempool"
+	tmstate "github.com/bnb-chain/greenfield-tendermint/proto/tendermint/state"
+	"github.com/bnb-chain/greenfield-tendermint/proxy"
+	"github.com/bnb-chain/greenfield-tendermint/types"
 )
 
 //-----------------------------------------------------------------------------

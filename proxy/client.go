@@ -3,12 +3,12 @@ package proxy
 import (
 	"fmt"
 
-	abcicli "github.com/tendermint/tendermint/abci/client"
-	"github.com/tendermint/tendermint/abci/example/counter"
-	"github.com/tendermint/tendermint/abci/example/kvstore"
-	"github.com/tendermint/tendermint/abci/types"
-	tmsync "github.com/tendermint/tendermint/libs/sync"
-	e2e "github.com/tendermint/tendermint/test/e2e/app"
+	abcicli "github.com/bnb-chain/greenfield-tendermint/abci/client"
+	"github.com/bnb-chain/greenfield-tendermint/abci/example/counter"
+	"github.com/bnb-chain/greenfield-tendermint/abci/example/kvstore"
+	"github.com/bnb-chain/greenfield-tendermint/abci/types"
+	tmsync "github.com/bnb-chain/greenfield-tendermint/libs/sync"
+	e2e "github.com/bnb-chain/greenfield-tendermint/test/e2e/app"
 )
 
 //go:generate ../scripts/mockery_generate.sh ClientCreator

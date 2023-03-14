@@ -3,12 +3,12 @@ package mock
 import (
 	"context"
 
-	abci "github.com/tendermint/tendermint/abci/types"
-	"github.com/tendermint/tendermint/libs/bytes"
-	"github.com/tendermint/tendermint/proxy"
-	"github.com/tendermint/tendermint/rpc/client"
-	ctypes "github.com/tendermint/tendermint/rpc/core/types"
-	"github.com/tendermint/tendermint/types"
+	abci "github.com/bnb-chain/greenfield-tendermint/abci/types"
+	"github.com/bnb-chain/greenfield-tendermint/libs/bytes"
+	"github.com/bnb-chain/greenfield-tendermint/proxy"
+	"github.com/bnb-chain/greenfield-tendermint/rpc/client"
+	ctypes "github.com/bnb-chain/greenfield-tendermint/rpc/core/types"
+	"github.com/bnb-chain/greenfield-tendermint/types"
 )
 
 // ABCIApp will send all abci related request to the named app,

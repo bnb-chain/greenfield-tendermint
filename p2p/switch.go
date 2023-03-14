@@ -8,11 +8,11 @@ import (
 
 	"github.com/gogo/protobuf/proto"
 
-	"github.com/tendermint/tendermint/config"
-	"github.com/tendermint/tendermint/libs/cmap"
-	"github.com/tendermint/tendermint/libs/rand"
-	"github.com/tendermint/tendermint/libs/service"
-	"github.com/tendermint/tendermint/p2p/conn"
+	"github.com/bnb-chain/greenfield-tendermint/config"
+	"github.com/bnb-chain/greenfield-tendermint/libs/cmap"
+	"github.com/bnb-chain/greenfield-tendermint/libs/rand"
+	"github.com/bnb-chain/greenfield-tendermint/libs/service"
+	"github.com/bnb-chain/greenfield-tendermint/p2p/conn"
 )
 
 const (

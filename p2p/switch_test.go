@@ -19,12 +19,12 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/tendermint/tendermint/config"
-	"github.com/tendermint/tendermint/crypto/ed25519"
-	"github.com/tendermint/tendermint/libs/log"
-	tmsync "github.com/tendermint/tendermint/libs/sync"
-	"github.com/tendermint/tendermint/p2p/conn"
-	p2pproto "github.com/tendermint/tendermint/proto/tendermint/p2p"
+	"github.com/bnb-chain/greenfield-tendermint/config"
+	"github.com/bnb-chain/greenfield-tendermint/crypto/ed25519"
+	"github.com/bnb-chain/greenfield-tendermint/libs/log"
+	tmsync "github.com/bnb-chain/greenfield-tendermint/libs/sync"
+	"github.com/bnb-chain/greenfield-tendermint/p2p/conn"
+	p2pproto "github.com/bnb-chain/greenfield-tendermint/proto/tendermint/p2p"
 )
 
 var cfg *config.P2PConfig

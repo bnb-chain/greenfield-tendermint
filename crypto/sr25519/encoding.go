@@ -1,8 +1,8 @@
 package sr25519
 
 import (
-	"github.com/tendermint/tendermint/crypto"
-	tmjson "github.com/tendermint/tendermint/libs/json"
+	"github.com/bnb-chain/greenfield-tendermint/crypto"
+	tmjson "github.com/bnb-chain/greenfield-tendermint/libs/json"
 )
 
 var _ crypto.PrivKey = PrivKey{}

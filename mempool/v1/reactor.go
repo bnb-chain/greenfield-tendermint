@@ -7,14 +7,14 @@ import (
 
 	"github.com/gogo/protobuf/proto"
 
-	cfg "github.com/tendermint/tendermint/config"
-	"github.com/tendermint/tendermint/libs/clist"
-	"github.com/tendermint/tendermint/libs/log"
-	tmsync "github.com/tendermint/tendermint/libs/sync"
-	"github.com/tendermint/tendermint/mempool"
-	"github.com/tendermint/tendermint/p2p"
-	protomem "github.com/tendermint/tendermint/proto/tendermint/mempool"
-	"github.com/tendermint/tendermint/types"
+	cfg "github.com/bnb-chain/greenfield-tendermint/config"
+	"github.com/bnb-chain/greenfield-tendermint/libs/clist"
+	"github.com/bnb-chain/greenfield-tendermint/libs/log"
+	tmsync "github.com/bnb-chain/greenfield-tendermint/libs/sync"
+	"github.com/bnb-chain/greenfield-tendermint/mempool"
+	"github.com/bnb-chain/greenfield-tendermint/p2p"
+	protomem "github.com/bnb-chain/greenfield-tendermint/proto/tendermint/mempool"
+	"github.com/bnb-chain/greenfield-tendermint/types"
 )
 
 // Reactor handles mempool tx broadcasting amongst peers.

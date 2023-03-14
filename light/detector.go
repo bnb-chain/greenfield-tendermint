@@ -7,8 +7,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/tendermint/tendermint/light/provider"
-	"github.com/tendermint/tendermint/types"
+	"github.com/bnb-chain/greenfield-tendermint/light/provider"
+	"github.com/bnb-chain/greenfield-tendermint/types"
 )
 
 // The detector component of the light client detects and handles attacks on the light client.

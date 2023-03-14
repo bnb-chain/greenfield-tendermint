@@ -10,13 +10,13 @@ import (
 
 	"github.com/creachadair/taskgroup"
 
-	abci "github.com/tendermint/tendermint/abci/types"
-	"github.com/tendermint/tendermint/config"
-	"github.com/tendermint/tendermint/libs/clist"
-	"github.com/tendermint/tendermint/libs/log"
-	"github.com/tendermint/tendermint/mempool"
-	"github.com/tendermint/tendermint/proxy"
-	"github.com/tendermint/tendermint/types"
+	abci "github.com/bnb-chain/greenfield-tendermint/abci/types"
+	"github.com/bnb-chain/greenfield-tendermint/config"
+	"github.com/bnb-chain/greenfield-tendermint/libs/clist"
+	"github.com/bnb-chain/greenfield-tendermint/libs/log"
+	"github.com/bnb-chain/greenfield-tendermint/mempool"
+	"github.com/bnb-chain/greenfield-tendermint/proxy"
+	"github.com/bnb-chain/greenfield-tendermint/types"
 )
 
 var _ mempool.Mempool = (*TxMempool)(nil)

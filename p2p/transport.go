@@ -10,10 +10,10 @@ import (
 
 	"github.com/gogo/protobuf/proto"
 
-	"github.com/tendermint/tendermint/crypto"
-	"github.com/tendermint/tendermint/libs/protoio"
-	"github.com/tendermint/tendermint/p2p/conn"
-	tmp2p "github.com/tendermint/tendermint/proto/tendermint/p2p"
+	"github.com/bnb-chain/greenfield-tendermint/crypto"
+	"github.com/bnb-chain/greenfield-tendermint/libs/protoio"
+	"github.com/bnb-chain/greenfield-tendermint/p2p/conn"
+	tmp2p "github.com/bnb-chain/greenfield-tendermint/proto/tendermint/p2p"
 )
 
 const (

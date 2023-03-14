@@ -10,18 +10,18 @@ import (
 
 	"github.com/gogo/protobuf/proto"
 
-	"github.com/tendermint/tendermint/crypto/ed25519"
-	"github.com/tendermint/tendermint/crypto/tmhash"
+	"github.com/bnb-chain/greenfield-tendermint/crypto/ed25519"
+	"github.com/bnb-chain/greenfield-tendermint/crypto/tmhash"
 
-	"github.com/tendermint/tendermint/crypto"
-	tmbytes "github.com/tendermint/tendermint/libs/bytes"
-	tmjson "github.com/tendermint/tendermint/libs/json"
-	tmos "github.com/tendermint/tendermint/libs/os"
-	"github.com/tendermint/tendermint/libs/protoio"
-	"github.com/tendermint/tendermint/libs/tempfile"
-	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
-	"github.com/tendermint/tendermint/types"
-	tmtime "github.com/tendermint/tendermint/types/time"
+	"github.com/bnb-chain/greenfield-tendermint/crypto"
+	tmbytes "github.com/bnb-chain/greenfield-tendermint/libs/bytes"
+	tmjson "github.com/bnb-chain/greenfield-tendermint/libs/json"
+	tmos "github.com/bnb-chain/greenfield-tendermint/libs/os"
+	"github.com/bnb-chain/greenfield-tendermint/libs/protoio"
+	"github.com/bnb-chain/greenfield-tendermint/libs/tempfile"
+	tmproto "github.com/bnb-chain/greenfield-tendermint/proto/tendermint/types"
+	"github.com/bnb-chain/greenfield-tendermint/types"
+	tmtime "github.com/bnb-chain/greenfield-tendermint/types/time"
 )
 
 // TODO: type ?

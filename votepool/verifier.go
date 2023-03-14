@@ -5,8 +5,8 @@ import (
 
 	"github.com/prysmaticlabs/prysm/crypto/bls/blst"
 
-	"github.com/tendermint/tendermint/libs/sync"
-	"github.com/tendermint/tendermint/types"
+	"github.com/bnb-chain/greenfield-tendermint/libs/sync"
+	"github.com/bnb-chain/greenfield-tendermint/types"
 )
 
 // Verifier will validate Votes by different policies.

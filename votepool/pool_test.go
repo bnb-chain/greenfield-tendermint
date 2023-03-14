@@ -11,10 +11,10 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/tendermint/tendermint/libs/log"
+	"github.com/bnb-chain/greenfield-tendermint/libs/log"
 
-	"github.com/tendermint/tendermint/crypto/ed25519"
-	"github.com/tendermint/tendermint/types"
+	"github.com/bnb-chain/greenfield-tendermint/crypto/ed25519"
+	"github.com/bnb-chain/greenfield-tendermint/types"
 )
 
 func makeVotePool() (blsCommon.SecretKey, *types.Validator, blsCommon.SecretKey, *types.Validator, *types.EventBus, *Pool) {

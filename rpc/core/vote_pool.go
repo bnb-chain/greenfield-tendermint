@@ -1,9 +1,9 @@
 package core
 
 import (
-	ctypes "github.com/tendermint/tendermint/rpc/core/types"
-	rpctypes "github.com/tendermint/tendermint/rpc/jsonrpc/types"
-	"github.com/tendermint/tendermint/votepool"
+	ctypes "github.com/bnb-chain/greenfield-tendermint/rpc/core/types"
+	rpctypes "github.com/bnb-chain/greenfield-tendermint/rpc/jsonrpc/types"
+	"github.com/bnb-chain/greenfield-tendermint/votepool"
 )
 
 func BroadcastVote(ctx *rpctypes.Context, vote votepool.Vote) (*ctypes.ResultBroadcastVote, error) {

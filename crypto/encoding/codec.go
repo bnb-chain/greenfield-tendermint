@@ -3,11 +3,11 @@ package encoding
 import (
 	"fmt"
 
-	"github.com/tendermint/tendermint/crypto"
-	"github.com/tendermint/tendermint/crypto/ed25519"
-	"github.com/tendermint/tendermint/crypto/secp256k1"
-	"github.com/tendermint/tendermint/libs/json"
-	pc "github.com/tendermint/tendermint/proto/tendermint/crypto"
+	"github.com/bnb-chain/greenfield-tendermint/crypto"
+	"github.com/bnb-chain/greenfield-tendermint/crypto/ed25519"
+	"github.com/bnb-chain/greenfield-tendermint/crypto/secp256k1"
+	"github.com/bnb-chain/greenfield-tendermint/libs/json"
+	pc "github.com/bnb-chain/greenfield-tendermint/proto/tendermint/crypto"
 )
 
 func init() {

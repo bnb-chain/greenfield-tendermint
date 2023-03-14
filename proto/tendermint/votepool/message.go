@@ -5,7 +5,7 @@ import (
 
 	"github.com/gogo/protobuf/proto"
 
-	"github.com/tendermint/tendermint/p2p"
+	"github.com/bnb-chain/greenfield-tendermint/p2p"
 )
 
 var _ p2p.Wrapper = &Vote{}

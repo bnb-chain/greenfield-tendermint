@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"reflect"
 
-	tmsync "github.com/tendermint/tendermint/libs/sync"
+	tmsync "github.com/bnb-chain/greenfield-tendermint/libs/sync"
 )
 
 var (

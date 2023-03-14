@@ -7,16 +7,16 @@ import (
 	"strings"
 	"time"
 
-	"github.com/tendermint/tendermint/libs/bytes"
-	tmjson "github.com/tendermint/tendermint/libs/json"
-	"github.com/tendermint/tendermint/libs/log"
-	tmpubsub "github.com/tendermint/tendermint/libs/pubsub"
-	"github.com/tendermint/tendermint/libs/service"
-	tmsync "github.com/tendermint/tendermint/libs/sync"
-	rpcclient "github.com/tendermint/tendermint/rpc/client"
-	ctypes "github.com/tendermint/tendermint/rpc/core/types"
-	jsonrpcclient "github.com/tendermint/tendermint/rpc/jsonrpc/client"
-	"github.com/tendermint/tendermint/types"
+	"github.com/bnb-chain/greenfield-tendermint/libs/bytes"
+	tmjson "github.com/bnb-chain/greenfield-tendermint/libs/json"
+	"github.com/bnb-chain/greenfield-tendermint/libs/log"
+	tmpubsub "github.com/bnb-chain/greenfield-tendermint/libs/pubsub"
+	"github.com/bnb-chain/greenfield-tendermint/libs/service"
+	tmsync "github.com/bnb-chain/greenfield-tendermint/libs/sync"
+	rpcclient "github.com/bnb-chain/greenfield-tendermint/rpc/client"
+	ctypes "github.com/bnb-chain/greenfield-tendermint/rpc/core/types"
+	jsonrpcclient "github.com/bnb-chain/greenfield-tendermint/rpc/jsonrpc/client"
+	"github.com/bnb-chain/greenfield-tendermint/types"
 )
 
 /*
