@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package tendermint.votepool;
 
-option go_package = "github.com/tendermint/tendermint/proto/tendermint/votepool";
+option go_package = "github.com/bnb-chain/greenfield-tendermint/proto/tendermint/votepool";
 
 message Vote {
   bytes  pub_key    = 1;
