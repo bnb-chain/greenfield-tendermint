@@ -11,10 +11,10 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/tendermint/tendermint/libs/log"
+	"github.com/cometbft/cometbft/libs/log"
 
-	"github.com/tendermint/tendermint/crypto/ed25519"
-	"github.com/tendermint/tendermint/types"
+	"github.com/cometbft/cometbft/crypto/ed25519"
+	"github.com/cometbft/cometbft/types"
 )
 
 func makeVotePool() (blsCommon.SecretKey, *types.Validator, blsCommon.SecretKey, *types.Validator, *types.EventBus, *Pool) {
@@ -234,7 +234,7 @@ func TestPool_SubscribeNewVoteEvent(t *testing.T) {
 		require.True(t, ok, "Expected event of type Vote, got %T", msg.Data())
 		require.Equal(t, vote1.EventHash, event.EventHash)
 	case <-sub.Cancelled():
-		t.Fatalf("sub was cancelled (reason: %v)", sub.Err())
+		t.Fatalf("sub was canceled (reason: %v)", sub.Err())
 	case <-time.After(1 * time.Second):
 		t.Fatal("Did not receive EventVotePoolUpdates within 1 sec.")
 	}

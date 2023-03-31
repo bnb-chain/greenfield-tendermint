@@ -138,7 +138,7 @@ func (v *Validator) Bytes() []byte {
 		panic(err)
 	}
 
-	pbv := tmproto.SimpleValidator{
+	pbv := cmtproto.SimpleValidator{
 		PubKey:         &pk,
 		VotingPower:    v.VotingPower,
 		RelayerBlsKey:  v.RelayerBlsKey,
@@ -152,10 +152,6 @@ func (v *Validator) Bytes() []byte {
 	return bz
 }
 
-<<<<<<< HEAD
-// ToProto converts Valiator to protobuf
-func (v *Validator) ToProto() (*cmtproto.Validator, error) {
-=======
 // SetRelayerBlsKey will update the bls public key of relayer.
 func (v *Validator) SetRelayerBlsKey(blsKey []byte) {
 	v.RelayerBlsKey = blsKey
@@ -167,8 +163,7 @@ func (v *Validator) SetRelayerAddress(address []byte) {
 }
 
 // ToProto converts Validator to protobuf
-func (v *Validator) ToProto() (*tmproto.Validator, error) {
->>>>>>> dfcc26983... votepool: implement a vote pool for cross chain events and challenge events  (#2)
+func (v *Validator) ToProto() (*cmtproto.Validator, error) {
 	if v == nil {
 		return nil, errors.New("nil validator")
 	}

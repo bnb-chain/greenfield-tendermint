@@ -5,14 +5,14 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/gogo/protobuf/proto"
+	"github.com/cosmos/gogoproto/proto"
 	lru "github.com/hashicorp/golang-lru"
 
-	"github.com/tendermint/tendermint/libs/log"
-	"github.com/tendermint/tendermint/p2p"
-	"github.com/tendermint/tendermint/p2p/conn"
-	"github.com/tendermint/tendermint/proto/tendermint/votepool"
-	"github.com/tendermint/tendermint/types"
+	"github.com/cometbft/cometbft/libs/log"
+	"github.com/cometbft/cometbft/p2p"
+	"github.com/cometbft/cometbft/p2p/conn"
+	"github.com/cometbft/cometbft/proto/tendermint/votepool"
+	"github.com/cometbft/cometbft/types"
 )
 
 const (
@@ -172,7 +172,7 @@ func (voteR *Reactor) broadcastVotes(peer p2p.Peer) {
 				}
 			}
 			if needToSend {
-				_ = p2p.SendEnvelopeShim(peer, p2p.Envelope{ //nolint: staticcheck
+				_ = peer.SendEnvelope(p2p.Envelope{
 					ChannelID: VotePoolChannel,
 					Message: &votepool.Vote{
 						PubKey:    vote.PubKey,
@@ -180,7 +180,7 @@ func (voteR *Reactor) broadcastVotes(peer p2p.Peer) {
 						EventType: uint32(vote.EventType),
 						EventHash: vote.EventHash,
 					},
-				}, voteR.Logger)
+				})
 				voteR.Logger.Debug("Sent vote to", "peer", peer, "vote", vote.Key())
 			}
 		case <-sub.Cancelled():

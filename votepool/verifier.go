@@ -5,8 +5,8 @@ import (
 
 	"github.com/prysmaticlabs/prysm/crypto/bls/blst"
 
-	"github.com/tendermint/tendermint/libs/sync"
-	"github.com/tendermint/tendermint/types"
+	"github.com/cometbft/cometbft/libs/sync"
+	"github.com/cometbft/cometbft/types"
 )
 
 // Verifier will validate Votes by different policies.

@@ -5,7 +5,7 @@ package votepool
 
 import (
 	fmt "fmt"
-	proto "github.com/gogo/protobuf/proto"
+	proto "github.com/cosmos/gogoproto/proto"
 	io "io"
 	math "math"
 	math_bits "math/bits"
@@ -92,7 +92,6 @@ func (m *Vote) GetEventHash() []byte {
 
 type Message struct {
 	// Types that are valid to be assigned to Sum:
-	//
 	//	*Message_Vote
 	Sum isMessage_Sum `protobuf_oneof:"sum"`
 }

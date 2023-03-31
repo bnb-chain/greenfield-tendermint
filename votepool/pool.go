@@ -6,12 +6,13 @@ import (
 	"time"
 
 	lru "github.com/hashicorp/golang-lru"
-	"github.com/tendermint/tendermint/libs/service"
 
-	"github.com/tendermint/tendermint/libs/log"
+	"github.com/cometbft/cometbft/libs/service"
 
-	"github.com/tendermint/tendermint/libs/sync"
-	"github.com/tendermint/tendermint/types"
+	"github.com/cometbft/cometbft/libs/log"
+
+	"github.com/cometbft/cometbft/libs/sync"
+	"github.com/cometbft/cometbft/types"
 )
 
 const (

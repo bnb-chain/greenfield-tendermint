@@ -1,7 +1,7 @@
 package votepool
 
 import (
-	"github.com/tendermint/tendermint/libs/service"
+	"github.com/cometbft/cometbft/libs/service"
 )
 
 // VotePool is used for pooling cross chain, challenge votes from different validators/relayers.
