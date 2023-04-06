@@ -1,7 +1,7 @@
 package types
 
 import (
-	"math/rand"
+	crytporand "crypto/rand"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -44,11 +44,11 @@ func TestValidatorValidateBasic(t *testing.T) {
 	pubKey, _ := priv.GetPubKey()
 
 	blsPubKey := make([]byte, BlsPubKeySize)
-	rand.Read(blsPubKey)
+	_, _ = crytporand.Read(blsPubKey)
 	relayer := make([]byte, AddressSize)
-	rand.Read(relayer)
+	_, _ = crytporand.Read(relayer)
 	challenger := make([]byte, AddressSize)
-	rand.Read(challenger)
+	_, _ = crytporand.Read(challenger)
 
 	val := NewValidator(pubKey, 1)
 	val.SetBlsKey(blsPubKey)
