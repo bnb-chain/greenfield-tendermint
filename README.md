@@ -19,7 +19,7 @@ for any bug bounty. We advise you to be careful and experiment on the network at
 
 ## Key features
 
-We implement several key features based on the Tendermint fork:
+We implement several key features based on the CometBFT fork:
 
 * Vote Pool. Vote pool is used to collect votes from different validators for off-chain consensus.
 Currently, it is mainly used for cross chain and data availability challenge in Greenfield blockchain.
@@ -78,11 +78,11 @@ yourself with our [Architectural Decision Records
 
 ## License
 
-The tendermint library (i.e. all code outside the `cmd` directory) is licensed under the
+The Greenfield Tendermint library (i.e. all code outside the `cmd` directory) is licensed under the
 [GNU Lesser General Public License v3.0](https://www.gnu.org/licenses/lgpl-3.0.en.html),
 also included in our repository in the `COPYING.LESSER` file.
 
-The tendermint binaries (i.e. all code inside the `cmd` directory) is licensed under the
+The Greenfield Tendermint binaries (i.e. all code inside the `cmd` directory) is licensed under the
 [GNU General Public License v3.0](https://www.gnu.org/licenses/gpl-3.0.en.html), also
 included in our repository in the `COPYING` file.
 
