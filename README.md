@@ -6,7 +6,7 @@ CometBFT is a Byzantine Fault Tolerant (BFT) middleware that takes a
 state transition machine - written in any programming language - and securely
 replicates it on many machines.
 
-For protocol details, refer to the [Tendermint Specification](./spec/README.md).
+For protocol details, refer to the [CometBFT Specification](./spec/README.md).
 
 For detailed analysis of the consensus protocol, including safety and liveness
 proofs, read our paper, "[The latest gossip on BFT
@@ -31,7 +31,7 @@ for more information. It has some limitations, please use it with caution.
 
 | Requirement | Notes             |
 |-------------|-------------------|
-| Go version  | Go 1.18 or higher |
+| Go version  | Go 1.20 or higher |
 
 ### Install
 
