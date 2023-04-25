@@ -83,10 +83,23 @@ func makeJSONRPCHandler(funcMap map[string]*RPCFunc, logger log.Logger) http.Han
 			ctx := &types.Context{JSONReq: &request, HTTPReq: r}
 			args := []reflect.Value{reflect.ValueOf(ctx)}
 			rpcFunc, ok := funcMap[request.Method]
+
 			if !ok {
 				// try eth_query
-				rpcFunc = funcMap["eth_query"]
+				var isEthQuery bool
+				for _, method := range types.SupportedEthQueryRequests {
+					if method == request.Method {
+						isEthQuery = true
+						break
+					}
+				}
+				if !isEthQuery {
+					responses = append(responses, types.RPCMethodNotFoundError(request.ID))
+					cache = false
+					continue
+				}
 
+				rpcFunc = funcMap["eth_query"]
 				bz, err := json.Marshal(request)
 				if err != nil {
 					responses = append(responses, types.RPCInvalidRequestError(request.ID, err))
@@ -279,5 +292,5 @@ func writeListOfEndpoints(w http.ResponseWriter, r *http.Request, funcMap map[st
 	buf.WriteString("</body></html>")
 	w.Header().Set("Content-Type", "text/html")
 	w.WriteHeader(200)
-	w.Write(buf.Bytes()) // nolint: errcheck
+	w.Write(buf.Bytes()) //nolint: errcheck
 }

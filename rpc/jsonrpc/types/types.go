@@ -27,6 +27,15 @@ const (
 	EthNetworkID        = "eth_networkId"
 )
 
+var SupportedEthQueryRequests = []string{
+	EthBlockNumber,
+	EthGetBlockByNumber,
+	EthGetBalance,
+	EthChainID,
+	NetVersion,
+	EthNetworkID,
+}
+
 // a wrapper to emulate a sum type: jsonrpcid = string | int
 // TODO: refactor when Go 2.0 arrives https://github.com/golang/go/issues/19412
 type jsonrpcid interface {
