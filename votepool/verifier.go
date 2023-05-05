@@ -3,7 +3,7 @@ package votepool
 import (
 	"errors"
 
-	"github.com/prysmaticlabs/prysm/crypto/bls/blst"
+	"github.com/prysmaticlabs/prysm/v4/crypto/bls/blst"
 
 	"github.com/tendermint/tendermint/libs/sync"
 	"github.com/tendermint/tendermint/types"
